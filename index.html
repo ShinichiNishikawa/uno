@@ -122,6 +122,7 @@ body {
 
 .setup-add-row input {
   flex: 1;
+  min-width: 0;
   background: var(--bg-input);
   border: 2px solid var(--border-color);
   border-radius: 8px;
@@ -140,12 +141,14 @@ body {
   background: var(--bg-input);
   border: none;
   border-radius: 8px;
-  padding: 8px 14px;
+  padding: 8px 16px;
   font-family: 'Noto Sans JP', sans-serif;
   font-weight: 700;
   font-size: 0.85rem;
   cursor: pointer;
   color: var(--uno-blue);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .btn-start {
@@ -796,6 +799,10 @@ function render(options = {}) {
   document.getElementById('gameStatus').textContent =
     `${roundLabel} — ${state.players.length}人で対戦中`;
 
+  // Update button label
+  document.getElementById('btnAddRound').textContent =
+    state.rounds === 0 ? 'ゲームスタート' : 'もう一回';
+
   // Measure name col width for sticky 2nd col
   // Use a reasonable default, will update after render
   const nameColWidth = 90;
@@ -923,6 +930,9 @@ const modalWinner = document.getElementById('modalWinner');
 const winnerGrid = document.getElementById('winnerGrid');
 
 document.getElementById('btnAddRound').addEventListener('click', () => {
+  // Update modal title based on round
+  document.querySelector('#modalWinner h2').textContent =
+    state.rounds === 0 ? '最初に勝ったのは？' : '勝ったのは？';
   // Show winner selection modal
   winnerGrid.innerHTML = '';
   state.players.forEach(player => {
