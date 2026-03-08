@@ -1089,8 +1089,9 @@ function findNextEmptyCell(round) {
 }
 
 // ── Score Editing ──
-document.getElementById('scoreTable').addEventListener('click', (e) => {
-  const cell = e.target.closest('.score-cell');
+
+// Open a cell for editing, optionally with delayed focus (for iOS auto-advance)
+function openCellForEditing(cell, delayFocus) {
   if (!cell || cell.querySelector('input')) return;
 
   const player = cell.dataset.player;
@@ -1104,8 +1105,14 @@ document.getElementById('scoreTable').addEventListener('click', (e) => {
   input.value = currentVal !== undefined ? currentVal : '';
   cell.textContent = '';
   cell.appendChild(input);
-  input.focus();
-  input.select();
+
+  if (delayFocus) {
+    // iOS: keyboard dismiss needs to complete before we can re-focus
+    setTimeout(() => { input.focus(); input.select(); }, 50);
+  } else {
+    input.focus();
+    input.select();
+  }
 
   let committed = false;
   const commit = (autoAdvance) => {
@@ -1118,11 +1125,10 @@ document.getElementById('scoreTable').addEventListener('click', (e) => {
     state.scores[player][round] = val;
     render();
 
-    // Auto-advance must happen synchronously (same call stack as user gesture)
-    // to satisfy iOS Safari's focus policy
+    // Auto-advance to next empty cell in the same round
     if (autoAdvance && val !== undefined) {
       const nextEmpty = findNextEmptyCell(round);
-      if (nextEmpty) nextEmpty.click();
+      if (nextEmpty) openCellForEditing(nextEmpty, true);
     }
 
     requestAnimationFrame(() => {
@@ -1143,6 +1149,12 @@ document.getElementById('scoreTable').addEventListener('click', (e) => {
     if (ev.key === 'Enter') { input.removeEventListener('blur', onBlur); commit(true); }
     if (ev.key === 'Escape') { input.removeEventListener('blur', onBlur); committed = true; render(); }
   });
+}
+
+document.getElementById('scoreTable').addEventListener('click', (e) => {
+  const cell = e.target.closest('.score-cell');
+  if (!cell || cell.querySelector('input')) return;
+  openCellForEditing(cell, false);
 });
 
 // ── Add Round ──
