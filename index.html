@@ -1079,6 +1079,17 @@ function render(options = {}) {
   saveState();
 }
 
+// Find next empty cell in the same round column (by display order in table)
+function findNextEmptyCell(round) {
+  const cells = document.querySelectorAll(`.score-cell[data-round="${round}"]`);
+  for (const cell of cells) {
+    const p = cell.dataset.player;
+    const v = (state.scores[p] || [])[round];
+    if (v === undefined || v === null) return cell;
+  }
+  return null;
+}
+
 // ── Score Editing ──
 document.getElementById('scoreTable').addEventListener('click', (e) => {
   const cell = e.target.closest('.score-cell');
@@ -1098,7 +1109,10 @@ document.getElementById('scoreTable').addEventListener('click', (e) => {
   input.focus();
   input.select();
 
-  const commit = () => {
+  let committed = false;
+  const commit = (autoAdvance) => {
+    if (committed) return;
+    committed = true;
     const raw = input.value.trim();
     const val = raw === '' ? undefined : Math.max(0, parseInt(raw, 10) || 0);
     if (!state.scores[player]) state.scores[player] = [];
@@ -1114,13 +1128,19 @@ document.getElementById('scoreTable').addEventListener('click', (e) => {
         newCell.addEventListener('animationend', () => newCell.classList.remove('bounce'), { once: true });
       }
       checkRoundComplete();
+      // Auto-advance to next empty cell in the same round
+      if (autoAdvance && val !== undefined) {
+        const nextEmpty = findNextEmptyCell(round);
+        if (nextEmpty) nextEmpty.click();
+      }
     });
   };
 
-  input.addEventListener('blur', commit);
+  const onBlur = () => commit(false);
+  input.addEventListener('blur', onBlur);
   input.addEventListener('keydown', (ev) => {
-    if (ev.key === 'Enter') input.blur();
-    if (ev.key === 'Escape') { input.removeEventListener('blur', commit); render(); }
+    if (ev.key === 'Enter') { input.removeEventListener('blur', onBlur); commit(true); }
+    if (ev.key === 'Escape') { input.removeEventListener('blur', onBlur); committed = true; render(); }
   });
 });
 
