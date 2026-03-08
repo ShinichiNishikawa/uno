@@ -1190,12 +1190,49 @@ function checkRoundComplete() {
   if (currentLast <= lastCompletedRound) return;
   lastCompletedRound = currentLast;
 
-  // Re-render to update sort/ranks with newly completed round
+  const gameFinished = isGameComplete();
+  if (gameFinished) {
+    render();
+    const leader = getSortedPlayers()[0];
+    showCelebration(leader);
+  } else {
+    animateReorder();
+  }
+}
+
+// FLIP animation: 行の並び替えを1秒かけてアニメーション
+function animateReorder() {
+  const tbody = document.getElementById('tableBody');
+  const rows = [...tbody.querySelectorAll('tr')];
+
+  // First: 現在の各行の位置を記録
+  const firstPositions = {};
+  rows.forEach(row => {
+    const player = row.querySelector('td:first-child')?.textContent;
+    if (player) firstPositions[player] = row.getBoundingClientRect().top;
+  });
+
+  // Re-render with new sort order
   render();
 
-  const leader = getSortedPlayers()[0];
-  const gameFinished = isGameComplete();
-  showCelebration(gameFinished ? leader : null);
+  // Last: 新しい位置を取得して差分アニメーション
+  const newRows = [...tbody.querySelectorAll('tr')];
+  newRows.forEach(row => {
+    const player = row.querySelector('td:first-child')?.textContent;
+    if (!player || firstPositions[player] === undefined) return;
+    const lastTop = row.getBoundingClientRect().top;
+    const delta = firstPositions[player] - lastTop;
+    if (Math.abs(delta) < 1) return;
+    row.style.transform = `translateY(${delta}px)`;
+    row.style.transition = 'none';
+    requestAnimationFrame(() => {
+      row.style.transition = 'transform 1s cubic-bezier(0.22, 1, 0.36, 1)';
+      row.style.transform = '';
+      row.addEventListener('transitionend', () => {
+        row.style.transition = '';
+      }, { once: true });
+    });
+  });
 }
 
 function showCelebration(leader) {
