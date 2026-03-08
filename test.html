@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>UNO スコア - テスト</title>
+<style>
+body { font-family: monospace; padding: 20px; }
+.pass { color: green; }
+.fail { color: red; font-weight: bold; }
+</style>
+</head>
+<body>
+<h1>UNO スコア テスト</h1>
+<div id="results"></div>
+<script>
+// Extract logic from main app for testing
+function getTotal(scores) {
+  return (scores || []).reduce((a, b) => a + (b || 0), 0);
+}
+
+function getRanks(players, scoresMap) {
+  const sorted = [...players].sort((a, b) => getTotal(scoresMap[a]) - getTotal(scoresMap[b]));
+  const ranks = {};
+  let rank = 1;
+  for (let i = 0; i < sorted.length; i++) {
+    if (i > 0 && getTotal(scoresMap[sorted[i]]) > getTotal(scoresMap[sorted[i - 1]])) {
+      rank = i + 1;
+    }
+    ranks[sorted[i]] = rank;
+  }
+  return ranks;
+}
+
+// Test runner
+const results = [];
+function test(name, fn) {
+  try {
+    fn();
+    results.push({ name, pass: true });
+  } catch (e) {
+    results.push({ name, pass: false, error: e.message });
+  }
+}
+
+function assertEqual(actual, expected, msg) {
+  if (JSON.stringify(actual) !== JSON.stringify(expected)) {
+    throw new Error(`${msg || ''} expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+  }
+}
+
+// ── Tests ──
+
+test('全員同点 → 全員1位', () => {
+  const players = ['A', 'B', 'C'];
+  const scores = { A: [10], B: [10], C: [10] };
+  const ranks = getRanks(players, scores);
+  assertEqual(ranks.A, 1);
+  assertEqual(ranks.B, 1);
+  assertEqual(ranks.C, 1);
+});
+
+test('トップ2名同点 → 両方1位、3人目は3位', () => {
+  const players = ['A', 'B', 'C'];
+  const scores = { A: [10], B: [10], C: [20] };
+  const ranks = getRanks(players, scores);
+  assertEqual(ranks.A, 1);
+  assertEqual(ranks.B, 1);
+  assertEqual(ranks.C, 3);
+});
+
+test('全員異なる → 1位,2位,3位', () => {
+  const players = ['A', 'B', 'C'];
+  const scores = { A: [10], B: [20], C: [30] };
+  const ranks = getRanks(players, scores);
+  assertEqual(ranks.A, 1);
+  assertEqual(ranks.B, 2);
+  assertEqual(ranks.C, 3);
+});
+
+test('2位タイ → 1位,2位,2位,4位', () => {
+  const players = ['A', 'B', 'C', 'D'];
+  const scores = { A: [10], B: [20], C: [20], D: [30] };
+  const ranks = getRanks(players, scores);
+  assertEqual(ranks.A, 1);
+  assertEqual(ranks.B, 2);
+  assertEqual(ranks.C, 2);
+  assertEqual(ranks.D, 4);
+});
+
+test('5人中3人同点1位 → 1位,1位,1位,4位,5位', () => {
+  const players = ['A', 'B', 'C', 'D', 'E'];
+  const scores = { A: [5], B: [5], C: [5], D: [10], E: [20] };
+  const ranks = getRanks(players, scores);
+  assertEqual(ranks.A, 1);
+  assertEqual(ranks.B, 1);
+  assertEqual(ranks.C, 1);
+  assertEqual(ranks.D, 4);
+  assertEqual(ranks.E, 5);
+});
+
+test('複数ラウンドの合計で順位', () => {
+  const players = ['A', 'B', 'C'];
+  const scores = { A: [10, 5], B: [5, 10], C: [20, 0] };
+  // A=15, B=15, C=20
+  const ranks = getRanks(players, scores);
+  assertEqual(ranks.A, 1);
+  assertEqual(ranks.B, 1);
+  assertEqual(ranks.C, 3);
+});
+
+test('スコア未入力(undefined)は0扱い', () => {
+  const players = ['A', 'B'];
+  const scores = { A: [10, undefined], B: [10, 5] };
+  // A=10, B=15
+  const ranks = getRanks(players, scores);
+  assertEqual(ranks.A, 1);
+  assertEqual(ranks.B, 2);
+});
+
+test('全員0点 → 全員1位', () => {
+  const players = ['A', 'B', 'C'];
+  const scores = { A: [0], B: [0], C: [0] };
+  const ranks = getRanks(players, scores);
+  assertEqual(ranks.A, 1);
+  assertEqual(ranks.B, 1);
+  assertEqual(ranks.C, 1);
+});
+
+// ── Output ──
+const el = document.getElementById('results');
+let passCount = 0;
+let failCount = 0;
+results.forEach(r => {
+  const div = document.createElement('div');
+  if (r.pass) {
+    div.className = 'pass';
+    div.textContent = `✓ ${r.name}`;
+    passCount++;
+  } else {
+    div.className = 'fail';
+    div.textContent = `✗ ${r.name}: ${r.error}`;
+    failCount++;
+  }
+  el.appendChild(div);
+});
+
+const summary = document.createElement('h2');
+summary.textContent = `${passCount} passed, ${failCount} failed`;
+summary.style.color = failCount > 0 ? 'red' : 'green';
+el.prepend(summary);
+
+// Exit code for CI
+if (failCount > 0) document.title = 'FAIL';
+</script>
+</body>
+</html>
