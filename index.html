@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>UNO スコア</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -181,7 +181,7 @@ body {
 }
 
 /* ── Game Screen ── */
-#gameScreen.active { padding-bottom: 80px; }
+#gameScreen.active { padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
 
 @keyframes dropIn {
   from { opacity: 0; transform: translateY(-30px); }
@@ -376,10 +376,14 @@ td:first-child {
   justify-content: center;
   gap: 12px;
   padding: 12px 16px;
-  padding-bottom: max(12px, env(safe-area-inset-bottom));
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
   background: var(--bg-card);
   border-top: 1px solid var(--border-color);
   z-index: 10;
+}
+
+@supports not (padding: env(safe-area-inset-bottom)) {
+  .action-bar { padding-bottom: 20px; }
 }
 
 .btn {
