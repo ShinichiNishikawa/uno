@@ -6,222 +6,301 @@
 <title>UNO スコア</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
 :root {
   --uno-red: #ED1C24;
   --uno-blue: #0956BF;
   --uno-green: #00A651;
   --uno-yellow: #F5C518;
-  --bg-page: #f5f5f7;
-  --bg-card: #ffffff;
-  --bg-input: #f0f0f4;
-  --text-primary: #1d1d1f;
-  --text-secondary: #6e6e73;
-  --border-color: #e5e5ea;
+  --bg: #fafaf8;
+  --card: #ffffff;
+  --card-alt: #f7f6f3;
+  --ink: #1a1a1a;
+  --ink2: #7a7a7a;
+  --border: #e8e6e1;
+  --shadow: rgba(0,0,0,0.06);
+  --radius: 14px;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
-  font-family: 'Noto Sans JP', sans-serif;
-  background: var(--bg-page);
-  color: var(--text-primary);
+  font-family: 'Zen Maru Gothic', sans-serif;
+  background: var(--bg);
+  color: var(--ink);
   min-height: 100dvh;
   -webkit-tap-highlight-color: transparent;
+  overflow-x: hidden;
 }
 
+/* ── Screens ── */
 .screen { display: none !important; }
 .screen.active { display: block !important; }
-
-/* ── Setup Screen ── */
-#setupScreen.active {
+#setupStep1.active, #setupStep2.active {
   display: flex !important;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   min-height: 100dvh;
   padding: 24px 16px;
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(237,28,36,0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 0%, rgba(9,86,191,0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 100%, rgba(0,166,81,0.04) 0%, transparent 50%),
+    var(--bg);
+}
+#gameScreen.active { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
+
+/* ── Logo ── */
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin-bottom: 6px;
 }
 
+.logo-pill {
+  display: inline-block;
+  font-weight: 900;
+  font-size: 1.5rem;
+  color: white;
+  padding: 2px 10px;
+  border-radius: 20px;
+  letter-spacing: -0.5px;
+  line-height: 1.4;
+}
+
+.logo-text {
+  font-weight: 900;
+  font-size: 1.5rem;
+  color: var(--ink);
+  letter-spacing: -0.5px;
+}
+
+/* ── Setup Card ── */
 .setup-card {
-  background: var(--bg-card);
-  border-radius: 16px;
-  padding: 32px 24px;
-  width: min(90vw, 400px);
-  box-shadow: 0 1px 8px rgba(0,0,0,0.08);
-  animation: dropIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  background: var(--card);
+  border-radius: 20px;
+  padding: 28px 22px;
+  width: min(92vw, 380px);
+  box-shadow: 0 2px 16px var(--shadow), 0 0 0 1px var(--border);
+  animation: cardUp 0.5s cubic-bezier(0.34, 1.4, 0.64, 1) both;
 }
 
-.setup-title {
-  font-weight: 700;
-  font-size: 1.6rem;
-  text-align: center;
-  margin-bottom: 4px;
-  background: linear-gradient(90deg, var(--uno-red), var(--uno-yellow), var(--uno-green), var(--uno-blue));
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: gradientShift 4s linear infinite;
+@keyframes cardUp {
+  from { opacity: 0; transform: translateY(24px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .setup-subtitle {
   text-align: center;
-  color: var(--text-secondary);
+  color: var(--ink2);
   font-size: 0.9rem;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
+  font-weight: 400;
 }
 
-.player-list {
-  list-style: none;
-  margin-bottom: 12px;
+/* Player chips */
+.player-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+  min-height: 20px;
 }
 
-.player-list li {
+.player-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: white;
+  animation: chipPop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes chipPop {
+  from { opacity: 0; transform: scale(0.6); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.player-chip button {
+  background: rgba(255,255,255,0.3);
+  border: none;
+  color: white;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 0.7rem;
+  line-height: 1;
+  cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--border-color);
+  justify-content: center;
 }
 
-.player-list li .player-color {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
+.chip-red { background: var(--uno-red); }
+.chip-blue { background: var(--uno-blue); }
+.chip-green { background: var(--uno-green); }
+.chip-yellow { background: #d4a800; }
 
-.player-list li span {
-  flex: 1;
-  font-size: 0.95rem;
-}
-
-.player-list li button {
-  background: none;
-  border: none;
-  color: var(--text-secondary);
-  font-size: 1.1rem;
-  cursor: pointer;
-  padding: 2px 6px;
-  border-radius: 4px;
-  line-height: 1;
-}
-
-.player-list li button:hover {
-  background: var(--bg-input);
-  color: var(--uno-red);
-}
-
-.setup-add-row {
+/* Add player row */
+.add-row {
   display: flex;
   gap: 8px;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
-.setup-add-row input {
+.add-row input {
   flex: 1;
   min-width: 0;
-  background: var(--bg-input);
-  border: 2px solid var(--border-color);
-  border-radius: 8px;
-  color: var(--text-primary);
-  font-family: 'Noto Sans JP', sans-serif;
-  font-size: 0.95rem;
-  padding: 8px 12px;
+  background: var(--card-alt);
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  font-family: 'Zen Maru Gothic', sans-serif;
+  font-size: 0.9rem;
+  padding: 10px 14px;
+  color: var(--ink);
   outline: none;
+  transition: border-color 0.2s;
 }
 
-.setup-add-row input:focus {
-  border-color: var(--uno-blue);
-}
+.add-row input:focus { border-color: var(--uno-blue); }
+.add-row input::placeholder { color: #bbb; }
 
-.setup-add-row button {
-  background: var(--bg-input);
-  border: none;
-  border-radius: 8px;
-  padding: 8px 16px;
-  font-family: 'Noto Sans JP', sans-serif;
+.add-row button {
+  background: var(--card-alt);
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-family: 'Zen Maru Gothic', sans-serif;
   font-weight: 700;
   font-size: 0.85rem;
   cursor: pointer;
   color: var(--uno-blue);
   white-space: nowrap;
   flex-shrink: 0;
+  transition: background 0.15s;
 }
 
+.add-row button:active { background: var(--border); }
+
+/* Round selector */
+.round-section {
+  margin-bottom: 20px;
+}
+
+.round-label {
+  font-size: 0.85rem;
+  color: var(--ink2);
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.round-picker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.round-opt {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  border: 2px solid var(--border);
+  background: var(--card);
+  font-family: 'Zen Maru Gothic', sans-serif;
+  font-weight: 900;
+  font-size: 1rem;
+  color: var(--ink);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.round-opt.selected {
+  background: var(--uno-blue);
+  border-color: var(--uno-blue);
+  color: white;
+  transform: scale(1.08);
+}
+
+.round-opt:active { transform: scale(0.92); }
+
+.round-opt-free {
+  padding: 0 12px;
+  width: auto;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+/* Start button */
 .btn-start {
   width: 100%;
-  background: var(--uno-blue);
+  background: var(--uno-green);
   color: white;
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   padding: 14px;
-  font-family: 'Noto Sans JP', sans-serif;
-  font-weight: 700;
+  font-family: 'Zen Maru Gothic', sans-serif;
+  font-weight: 900;
   font-size: 1rem;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(9,86,191,0.25);
-  transition: transform 0.15s;
+  box-shadow: 0 3px 12px rgba(0,166,81,0.3);
+  transition: transform 0.15s, box-shadow 0.15s;
+  letter-spacing: 0.5px;
 }
 
-.btn-start:active { transform: scale(0.97); }
-
-.btn-start:disabled {
-  opacity: 0.4;
-  cursor: default;
-}
+.btn-start:active { transform: scale(0.97); box-shadow: 0 1px 6px rgba(0,166,81,0.2); }
+.btn-start:disabled { opacity: 0.35; cursor: default; box-shadow: none; }
 
 .setup-hint {
   text-align: center;
-  color: var(--text-secondary);
-  font-size: 0.75rem;
-  margin-top: 12px;
+  color: var(--ink2);
+  font-size: 0.72rem;
+  margin-top: 10px;
 }
 
-/* ── Game Screen ── */
-#gameScreen.active { padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
-
-@keyframes dropIn {
-  from { opacity: 0; transform: translateY(-30px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes gradientShift {
-  to { background-position: 200% center; }
-}
-
-header {
+/* ── Game Header ── */
+.game-header {
   text-align: center;
-  padding: 24px 16px 12px;
-  animation: dropIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-}
-
-h1 {
-  font-weight: 700;
-  font-size: 1.6rem;
-  background: linear-gradient(90deg, var(--uno-red), var(--uno-yellow), var(--uno-green), var(--uno-blue));
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: gradientShift 4s linear infinite;
+  padding: 20px 16px 8px;
+  animation: cardUp 0.4s cubic-bezier(0.34, 1.4, 0.64, 1) both;
 }
 
 .game-status {
-  color: var(--text-secondary);
-  font-size: 0.8rem;
-  margin-top: 4px;
+  color: var(--ink2);
+  font-size: 0.78rem;
+  margin-top: 2px;
+}
+
+/* Progress bar */
+.progress-wrap {
+  margin: 8px 20px 0;
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--uno-green), var(--uno-blue));
+  transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* ── Score Table ── */
 .table-wrapper {
   overflow-x: auto;
-  margin: 16px 12px;
-  border-radius: 12px;
-  background: var(--bg-card);
-  box-shadow: 0 1px 8px rgba(0,0,0,0.08);
+  margin: 14px 12px;
+  border-radius: var(--radius);
+  background: var(--card);
+  box-shadow: 0 1px 10px var(--shadow), 0 0 0 1px var(--border);
   -webkit-overflow-scrolling: touch;
 }
 
@@ -235,38 +314,32 @@ table {
 thead th {
   position: sticky;
   top: 0;
-  background: var(--bg-card);
+  background: var(--card-alt);
   font-weight: 700;
-  font-size: 0.75rem;
-  color: var(--text-secondary);
+  font-size: 0.7rem;
+  color: var(--ink2);
   padding: 10px 10px;
   white-space: nowrap;
-  border-bottom: 2px solid var(--border-color);
+  border-bottom: 2px solid var(--border);
   z-index: 2;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
 
-/* Sticky first 2 cols: name + rank */
 th:nth-child(1), td:nth-child(1) {
-  position: sticky;
-  left: 0;
-  z-index: 3;
-  background: var(--bg-card);
+  position: sticky; left: 0; z-index: 3; background: var(--card);
 }
-
 th:nth-child(2), td:nth-child(2) {
-  position: sticky;
-  left: var(--name-col-width, 100px);
-  z-index: 3;
-  background: var(--bg-card);
+  position: sticky; left: var(--name-col-width, 90px); z-index: 3; background: var(--card);
 }
-
-thead th:nth-child(1) { z-index: 4; }
-thead th:nth-child(2) { z-index: 4; }
+thead th:nth-child(1), thead th:nth-child(2) {
+  z-index: 4; background: var(--card-alt);
+}
 
 td {
-  padding: 8px 10px;
+  padding: 10px 10px;
   text-align: center;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border);
   white-space: nowrap;
   font-size: 0.95rem;
 }
@@ -275,41 +348,35 @@ td:first-child {
   text-align: left;
   font-weight: 700;
   font-size: 0.9rem;
-  padding-left: 16px;
+  padding-left: 14px;
 }
 
+/* Color stripes */
 .uno-color-0 td:first-child { border-left: 4px solid var(--uno-red); }
 .uno-color-1 td:first-child { border-left: 4px solid var(--uno-blue); }
 .uno-color-2 td:first-child { border-left: 4px solid var(--uno-green); }
 .uno-color-3 td:first-child { border-left: 4px solid var(--uno-yellow); }
 
-/* Rank column */
-.col-rank {
-  min-width: 46px;
-  padding: 6px 6px;
-}
+/* Rank */
+.col-rank { min-width: 44px; padding: 6px 6px; }
 
 .rank-badge {
   display: inline-flex;
   align-items: center;
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 2px 8px;
+  font-size: 0.72rem;
+  font-weight: 900;
+  padding: 3px 9px;
   border-radius: 10px;
 }
 
-.rank-1 .rank-badge { background: #FFF8E1; color: #F9A825; }
-.rank-2 .rank-badge { background: #F5F5F5; color: #757575; }
-.rank-3 .rank-badge { background: #FBE9E7; color: #BF360C; }
-.rank-other .rank-badge { background: var(--bg-input); color: var(--text-secondary); }
+.rank-1 .rank-badge { background: #FFF3D0; color: #D4920B; }
+.rank-2 .rank-badge { background: #F0F0EE; color: #777; }
+.rank-3 .rank-badge { background: #FDEAE4; color: #C44A1A; }
+.rank-other .rank-badge { background: var(--card-alt); color: var(--ink2); }
 
-/* Total column */
-.col-total {
-  font-weight: 700;
-  font-size: 1rem;
-}
+.col-total { font-weight: 900; font-size: 1rem; }
 
-/* Score input */
+/* Score cells */
 .score-cell {
   cursor: pointer;
   min-width: 52px;
@@ -317,15 +384,15 @@ td:first-child {
   position: relative;
 }
 
-.score-cell:hover { background: var(--bg-input); }
+.score-cell:hover { background: var(--card-alt); }
 
 .score-cell input {
-  width: 52px;
-  background: var(--bg-input);
+  width: 50px;
+  background: var(--card-alt);
   border: 2px solid var(--uno-blue);
-  border-radius: 6px;
-  color: var(--text-primary);
-  font-family: 'Noto Sans JP', sans-serif;
+  border-radius: 8px;
+  color: var(--ink);
+  font-family: 'Zen Maru Gothic', sans-serif;
   font-weight: 700;
   font-size: 0.95rem;
   text-align: center;
@@ -334,15 +401,9 @@ td:first-child {
 }
 
 .score-cell input::-webkit-inner-spin-button,
-.score-cell input::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-}
+.score-cell input::-webkit-outer-spin-button { -webkit-appearance: none; }
 
-/* Zero score = winner */
-.zero-score {
-  color: var(--uno-green);
-  font-weight: 700;
-}
+.zero-score { color: var(--uno-green); font-weight: 900; }
 
 /* Animations */
 @keyframes bounce {
@@ -368,85 +429,85 @@ td:first-child {
 /* ── Action Bar ── */
 .action-bar {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  bottom: 0; left: 0; right: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  padding: 12px 16px;
-  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-  background: var(--bg-card);
-  border-top: 1px solid var(--border-color);
+  gap: 10px;
+  padding: 10px 16px;
+  padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  background: var(--card);
+  border-top: 1px solid var(--border);
   z-index: 10;
 }
 
 @supports not (padding: env(safe-area-inset-bottom)) {
-  .action-bar { padding-bottom: 20px; }
+  .action-bar { padding-bottom: 18px; }
 }
 
 .btn {
-  font-family: 'Noto Sans JP', sans-serif;
+  font-family: 'Zen Maru Gothic', sans-serif;
   font-weight: 700;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   border: none;
   border-radius: 10px;
-  padding: 10px 20px;
+  padding: 10px 18px;
   cursor: pointer;
-  transition: transform 0.15s;
+  transition: transform 0.12s;
 }
 
-.btn:active { transform: scale(0.95); }
+.btn:active { transform: scale(0.94); }
 
 .btn-primary {
   background: var(--uno-blue);
   color: white;
-  box-shadow: 0 2px 8px rgba(9,86,191,0.25);
+  box-shadow: 0 2px 8px rgba(9,86,191,0.2);
 }
 
 .btn-secondary {
-  background: var(--bg-input);
-  color: var(--text-primary);
+  background: var(--card-alt);
+  color: var(--ink);
+  border: 1px solid var(--border);
 }
 
-.btn-danger-link {
+.btn-ghost {
   background: none;
   border: none;
-  color: var(--uno-red);
-  font-family: 'Noto Sans JP', sans-serif;
-  font-size: 0.8rem;
+  color: var(--ink2);
+  font-family: 'Zen Maru Gothic', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
   cursor: pointer;
-  padding: 8px;
-  opacity: 0.6;
-  transition: opacity 0.15s;
+  padding: 8px 6px;
+  transition: color 0.15s;
 }
 
-.btn-danger-link:hover { opacity: 1; }
+.btn-ghost:hover { color: var(--uno-red); }
 
-/* ── Modal ── */
+/* ── Modals ── */
 .modal-overlay {
   display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.3);
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.25);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
   z-index: 100;
   align-items: center;
   justify-content: center;
 }
-
 .modal-overlay.active { display: flex; }
 
 .modal {
-  background: var(--bg-card);
-  border-radius: 16px;
+  background: var(--card);
+  border-radius: 20px;
   padding: 24px;
-  width: min(90vw, 380px);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+  width: min(90vw, 360px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+  animation: cardUp 0.3s ease both;
 }
 
 .modal h2 {
-  font-weight: 700;
+  font-weight: 900;
   font-size: 1rem;
   margin-bottom: 16px;
   text-align: center;
@@ -458,122 +519,133 @@ td:first-child {
   justify-content: flex-end;
 }
 
-/* Winner select modal */
-.winner-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.winner-btn {
-  background: var(--bg-input);
-  border: 2px solid var(--border-color);
-  border-radius: 10px;
-  padding: 14px 8px;
-  font-family: 'Noto Sans JP', sans-serif;
-  font-weight: 700;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: all 0.15s;
-  color: var(--text-primary);
-}
-
-.winner-btn:hover {
-  border-color: var(--uno-green);
-  background: #f0faf0;
-}
-
-.winner-btn:active { transform: scale(0.95); }
-
-/* ── Celebration ── */
-.celebration-overlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  z-index: 200;
-  pointer-events: none;
-}
-
-.celebration-overlay.active {
-  display: block;
-  pointer-events: auto;
-}
-
-.celebration-overlay canvas {
-  position: absolute;
-  inset: 0;
+.modal-input {
   width: 100%;
-  height: 100%;
+  background: var(--card-alt);
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  color: var(--ink);
+  font-family: 'Zen Maru Gothic', sans-serif;
+  font-size: 0.95rem;
+  padding: 10px 14px;
+  outline: none;
+  margin-bottom: 16px;
 }
-
-.celebration-text {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) scale(0);
-  text-align: center;
-  z-index: 201;
-  animation: celebPop 0.5s 0.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-}
-
-.celebration-text .panpaka {
-  font-weight: 700;
-  font-size: 1.8rem;
-  color: var(--text-primary);
-  text-shadow: 0 2px 12px rgba(0,0,0,0.1);
-  white-space: nowrap;
-}
-
-.celebration-text .winner-name {
-  font-weight: 700;
-  font-size: 1.2rem;
-  color: var(--uno-green);
-  margin-top: 4px;
-}
-
-.celebration-text .emojis {
-  font-size: 2.5rem;
-  margin-top: 8px;
-}
-
-@keyframes celebPop {
-  to { transform: translate(-50%, -50%) scale(1); }
-}
+.modal-input:focus { border-color: var(--uno-blue); }
 
 /* Confirm body */
 .confirm-body {
   text-align: center;
   margin-bottom: 20px;
   line-height: 1.6;
+  font-size: 0.92rem;
+}
+.confirm-body .icon { font-size: 2rem; margin-bottom: 8px; }
+
+/* ── Celebration ── */
+.celebration-overlay {
+  display: none; position: fixed; inset: 0; z-index: 200; pointer-events: none;
+  background: rgba(250, 250, 248, 0.88);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.celebration-overlay.active { display: block; pointer-events: auto; }
+.celebration-overlay canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+.celebration-text {
+  position: absolute; top: 45%; left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  text-align: center; z-index: 201;
+  animation: celebPop 0.5s 0.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+.celebration-text .panpaka {
+  font-weight: 900; font-size: 1.7rem; color: var(--ink);
+  text-shadow: 0 2px 20px rgba(255,255,255,0.8);
+  white-space: nowrap;
+}
+.celebration-text .winner-name {
+  font-weight: 900; font-size: 1.1rem; color: var(--uno-green);
+  margin-top: 4px;
+}
+.celebration-text .emojis { font-size: 2.2rem; margin-top: 8px; }
+
+@keyframes celebPop {
+  to { transform: translate(-50%, -50%) scale(1); }
 }
 
-.confirm-body .warning {
-  font-size: 2rem;
-  margin-bottom: 8px;
+/* ── Game Complete ── */
+.game-complete-banner {
+  text-align: center;
+  padding: 20px 16px;
+  margin: 0 12px 14px;
+  background: linear-gradient(135deg, #FFF8E1, #FFF3D0);
+  border-radius: var(--radius);
+  border: 2px solid #F5C518;
+  animation: cardUp 0.4s ease both;
+}
+.game-complete-banner .gc-title {
+  font-weight: 900;
+  font-size: 1.1rem;
+  color: #B8860B;
+}
+.game-complete-banner .gc-sub {
+  font-size: 0.8rem;
+  color: #B8860B;
+  margin-top: 2px;
+  opacity: 0.7;
 }
 
 /* ── Responsive ── */
 @media (max-width: 400px) {
-  h1, .setup-title { font-size: 1.4rem; }
-  td:first-child { font-size: 0.85rem; padding-left: 12px; }
-  .btn { padding: 10px 14px; font-size: 0.8rem; }
-  .score-cell input { width: 46px; }
-  .setup-card { padding: 24px 16px; }
+  .logo-pill, .logo-text { font-size: 1.3rem; }
+  td:first-child { font-size: 0.82rem; padding-left: 10px; }
+  .btn { padding: 10px 14px; font-size: 0.78rem; }
+  .score-cell input { width: 44px; }
+  .setup-card { padding: 22px 16px; }
+  .round-opt { width: 38px; height: 38px; font-size: 0.9rem; }
 }
 </style>
 </head>
 <body>
 
-<!-- ════ Setup Screen ════ -->
-<div id="setupScreen" class="screen active">
+<!-- ════ Setup Screen: Step 1 - Round Count ════ -->
+<div id="setupStep1" class="screen active">
   <div class="setup-card">
-    <div class="setup-title">UNO スコア</div>
+    <div class="logo">
+      <span class="logo-pill" style="background:var(--uno-red);">U</span>
+      <span class="logo-pill" style="background:var(--uno-blue);">N</span>
+      <span class="logo-pill" style="background:var(--uno-green);">O</span>
+      <span class="logo-text">スコア</span>
+    </div>
+    <div class="setup-subtitle">何ラウンドやる？</div>
+
+    <div class="round-section">
+      <div class="round-picker" id="roundPicker">
+        <button class="round-opt" data-rounds="1">1</button>
+        <button class="round-opt" data-rounds="3">3</button>
+        <button class="round-opt selected" data-rounds="5">5</button>
+      </div>
+      <div class="setup-hint" style="margin-top:10px;">あとで増やせるよ</div>
+    </div>
+
+    <button class="btn-start" id="btnToStep2">次へ</button>
+  </div>
+</div>
+
+<!-- ════ Setup Screen: Step 2 - Player Names ════ -->
+<div id="setupStep2" class="screen">
+  <div class="setup-card">
+    <div class="logo">
+      <span class="logo-pill" style="background:var(--uno-red);">U</span>
+      <span class="logo-pill" style="background:var(--uno-blue);">N</span>
+      <span class="logo-pill" style="background:var(--uno-green);">O</span>
+      <span class="logo-text">スコア</span>
+    </div>
     <div class="setup-subtitle">誰が遊びますか？</div>
 
-    <ul class="player-list" id="setupPlayerList"></ul>
+    <div class="player-chips" id="setupPlayerChips"></div>
 
-    <div class="setup-add-row">
+    <div class="add-row">
       <input type="text" id="setupNameInput" placeholder="名前を入力" autocomplete="off">
       <button id="setupAddBtn">追加</button>
     </div>
@@ -585,10 +657,20 @@ td:first-child {
 
 <!-- ════ Game Screen ════ -->
 <div id="gameScreen" class="screen">
-  <header>
-    <h1>UNO スコア</h1>
+  <div class="game-header">
+    <div class="logo">
+      <span class="logo-pill" style="background:var(--uno-red);font-size:1rem;padding:1px 7px;">U</span>
+      <span class="logo-pill" style="background:var(--uno-blue);font-size:1rem;padding:1px 7px;">N</span>
+      <span class="logo-pill" style="background:var(--uno-green);font-size:1rem;padding:1px 7px;">O</span>
+      <span class="logo-text" style="font-size:1rem;">スコア</span>
+    </div>
     <div class="game-status" id="gameStatus"></div>
-  </header>
+    <div class="progress-wrap" id="progressWrap" style="display:none;">
+      <div class="progress-fill" id="progressFill" style="width:0%"></div>
+    </div>
+  </div>
+
+  <div id="gameCompleteBanner" style="display:none;"></div>
 
   <div class="table-wrapper">
     <table id="scoreTable">
@@ -598,9 +680,9 @@ td:first-child {
   </div>
 
   <div class="action-bar">
-    <button class="btn btn-primary" id="btnAddRound">もう一回</button>
+    <button class="btn btn-primary" id="btnAddRound">ラウンド追加</button>
     <button class="btn btn-secondary" id="btnAddPlayer">参加者追加</button>
-    <button class="btn-danger-link" id="btnReset">リセット</button>
+    <button class="btn-ghost" id="btnReset">最初から</button>
   </div>
 </div>
 
@@ -614,23 +696,11 @@ td:first-child {
   </div>
 </div>
 
-<!-- Winner Select Modal -->
-<div class="modal-overlay" id="modalWinner">
-  <div class="modal">
-    <h2>勝ったのは？</h2>
-    <div class="winner-grid" id="winnerGrid"></div>
-    <div class="modal-actions">
-      <button class="btn btn-secondary" id="btnCancelWinner">キャンセル</button>
-    </div>
-  </div>
-</div>
-
 <!-- Add Player Modal -->
 <div class="modal-overlay" id="modalAddPlayer">
   <div class="modal">
     <h2>参加者追加</h2>
-    <input type="text" id="inputPlayerName" placeholder="名前を入力" autocomplete="off"
-           style="width:100%;background:var(--bg-input);border:2px solid var(--border-color);border-radius:8px;color:var(--text-primary);font-family:'Noto Sans JP',sans-serif;font-size:1rem;padding:10px 12px;outline:none;margin-bottom:16px;">
+    <input type="text" class="modal-input" id="inputPlayerName" placeholder="名前を入力" autocomplete="off">
     <div class="modal-actions">
       <button class="btn btn-secondary" id="btnCancelPlayer">キャンセル</button>
       <button class="btn btn-primary" id="btnConfirmPlayer">追加</button>
@@ -642,12 +712,12 @@ td:first-child {
 <div class="modal-overlay" id="modalConfirmReset">
   <div class="modal">
     <div class="confirm-body">
-      <div class="warning">⚠️</div>
+      <div class="icon">🔄</div>
       すべてのスコアをリセットして<br>最初の画面に戻りますか？
     </div>
     <div class="modal-actions">
       <button class="btn btn-secondary" id="btnCancelReset">キャンセル</button>
-      <button class="btn btn-primary" style="background:var(--uno-red);" id="btnConfirmReset">リセット</button>
+      <button class="btn btn-primary" style="background:var(--uno-red);" id="btnConfirmReset">最初から</button>
     </div>
   </div>
 </div>
@@ -655,11 +725,10 @@ td:first-child {
 <script>
 // ── State ──
 const STORAGE_KEY = 'uno-score-tracker';
-const UNO_COLORS = ['var(--uno-red)', 'var(--uno-blue)', 'var(--uno-green)', 'var(--uno-yellow)'];
+const CHIP_COLORS = ['chip-red', 'chip-blue', 'chip-green', 'chip-yellow'];
 
 let state = loadState();
 let previousRanks = {};
-// Map player → color index, assigned at game start, persists across sort
 let playerColors = {};
 
 function loadState() {
@@ -667,6 +736,12 @@ function loadState() {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       const parsed = JSON.parse(saved);
+      if (!parsed.totalRounds) parsed.totalRounds = 0; // ∞ mode
+      // Migration: rounds → totalRounds (旧データ互換)
+      if (parsed.rounds !== undefined) {
+        parsed.totalRounds = Math.max(parsed.totalRounds || 0, parsed.rounds || 0);
+        delete parsed.rounds;
+      }
       parsed.players.forEach(p => {
         if (!parsed.scores[p]) parsed.scores[p] = [];
       });
@@ -688,22 +763,39 @@ function clearState() {
 }
 
 // ── Setup Screen ──
-const setupScreen = document.getElementById('setupScreen');
+const setupStep1 = document.getElementById('setupStep1');
+const setupStep2 = document.getElementById('setupStep2');
 const gameScreen = document.getElementById('gameScreen');
 let setupPlayers = [];
+let setupRounds = 5;
+
+function hideAllScreens() {
+  setupStep1.classList.remove('active');
+  setupStep2.classList.remove('active');
+  gameScreen.classList.remove('active');
+}
 
 function showSetup() {
-  setupScreen.classList.add('active');
-  gameScreen.classList.remove('active');
-  renderSetupList();
+  hideAllScreens();
+  setupStep1.classList.add('active');
+  // Restore round picker selection
+  document.querySelectorAll('.round-opt').forEach(o => {
+    o.classList.toggle('selected', parseInt(o.dataset.rounds, 10) === setupRounds);
+  });
+}
+
+function showStep2() {
+  hideAllScreens();
+  setupStep2.classList.add('active');
+  renderSetupChips();
+  setTimeout(() => document.getElementById('setupNameInput').focus(), 100);
 }
 
 function showGame() {
-  setupScreen.classList.remove('active');
+  hideAllScreens();
   gameScreen.classList.add('active');
   assignColors();
-  // Don't celebrate already-completed rounds on load
-  if (state && state.rounds > 0) lastCompletedRound = state.rounds - 1;
+  lastCompletedRound = getLastCompleteRound();
   render();
 }
 
@@ -714,52 +806,67 @@ function assignColors() {
   });
 }
 
-function renderSetupList() {
-  const ul = document.getElementById('setupPlayerList');
-  ul.innerHTML = '';
+// Player chips
+function renderSetupChips() {
+  const wrap = document.getElementById('setupPlayerChips');
+  wrap.innerHTML = '';
   setupPlayers.forEach((name, i) => {
-    const li = document.createElement('li');
-    const dot = document.createElement('div');
-    dot.className = 'player-color';
-    const colors = ['#ED1C24', '#0956BF', '#00A651', '#F5C518'];
-    dot.style.background = colors[i % 4];
-    const span = document.createElement('span');
-    span.textContent = name;
-    const btn = document.createElement('button');
-    btn.textContent = '×';
-    btn.onclick = () => {
+    const chip = document.createElement('span');
+    chip.className = `player-chip ${CHIP_COLORS[i % 4]}`;
+    chip.style.animationDelay = `${i * 0.05}s`;
+    chip.innerHTML = `${escapeHTML(name)}<button>×</button>`;
+    chip.querySelector('button').onclick = () => {
       setupPlayers.splice(i, 1);
-      renderSetupList();
+      renderSetupChips();
     };
-    li.append(dot, span, btn);
-    ul.appendChild(li);
+    wrap.appendChild(chip);
   });
   document.getElementById('btnStartGame').disabled = setupPlayers.length < 2;
 }
 
+// Step 1: Round picker
+document.getElementById('roundPicker').addEventListener('click', (e) => {
+  const opt = e.target.closest('.round-opt');
+  if (!opt) return;
+  document.querySelectorAll('.round-opt').forEach(o => o.classList.remove('selected'));
+  opt.classList.add('selected');
+  setupRounds = parseInt(opt.dataset.rounds, 10);
+});
+
+document.getElementById('btnToStep2').addEventListener('click', () => {
+  showStep2();
+});
+
+// Step 2: Player names
 document.getElementById('setupAddBtn').addEventListener('click', addSetupPlayer);
-document.getElementById('setupNameInput').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') addSetupPlayer();
+
+// IME-aware Enter handling
+let isComposing = false;
+const setupNameInput = document.getElementById('setupNameInput');
+setupNameInput.addEventListener('compositionstart', () => { isComposing = true; });
+setupNameInput.addEventListener('compositionend', () => {
+  isComposing = false;
+});
+setupNameInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !isComposing) addSetupPlayer();
 });
 
 function addSetupPlayer() {
   const input = document.getElementById('setupNameInput');
   const name = input.value.trim();
-  if (!name || setupPlayers.includes(name)) {
-    input.value = '';
-    return;
-  }
+  if (!name || setupPlayers.includes(name)) { input.value = ''; return; }
   setupPlayers.push(name);
   input.value = '';
-  renderSetupList();
+  renderSetupChips();
   input.focus();
 }
 
+// Start game
 document.getElementById('btnStartGame').addEventListener('click', () => {
   if (setupPlayers.length < 2) return;
   state = {
     players: [...setupPlayers],
-    rounds: 0,
+    totalRounds: setupRounds,
     scores: {}
   };
   state.players.forEach(p => state.scores[p] = []);
@@ -768,24 +875,57 @@ document.getElementById('btnStartGame').addEventListener('click', () => {
 });
 
 // ── Derived ──
+
+// ラウンド r が完了しているか（全員スコア入力済み）
+function isRoundComplete(r) {
+  return state.players.every(p => {
+    const v = (state.scores[p] || [])[r];
+    return v !== undefined && v !== null;
+  });
+}
+
+// 最後の完了ラウンドのインデックス（連続して完了している最後）
+function getLastCompleteRound() {
+  let last = -1;
+  for (let r = 0; r < (state.totalRounds || 0); r++) {
+    if (isRoundComplete(r)) last = r;
+    else break;
+  }
+  return last;
+}
+
+// 完了ラウンドまでの合計（ソート・順位用）
+function getCompletedTotal(player) {
+  const last = getLastCompleteRound();
+  let sum = 0;
+  for (let r = 0; r <= last; r++) {
+    sum += (state.scores[player] || [])[r] || 0;
+  }
+  return sum;
+}
+
+// 全スコアの合計（表示用）
 function getTotal(player) {
   return (state.scores[player] || []).reduce((a, b) => a + (b || 0), 0);
 }
 
 function getSortedPlayers() {
-  return [...state.players].sort((a, b) => getTotal(a) - getTotal(b));
+  return [...state.players].sort((a, b) => getCompletedTotal(a) - getCompletedTotal(b));
 }
 
 // Competition ranking (1224方式): 同点は同順位、次の順位はその分飛ばす
-// 例: 1位,1位,3位,4位（2位は飛ぶ）
+// 完了ラウンドがない場合は全員 null（順位なし）
 function getRanks() {
+  const hasCompleted = getLastCompleteRound() >= 0;
   const sorted = getSortedPlayers();
   const ranks = {};
+  if (!hasCompleted) {
+    sorted.forEach(p => ranks[p] = null);
+    return ranks;
+  }
   let rank = 1;
   for (let i = 0; i < sorted.length; i++) {
-    if (i > 0 && getTotal(sorted[i]) > getTotal(sorted[i - 1])) {
-      rank = i + 1;
-    }
+    if (i > 0 && getCompletedTotal(sorted[i]) > getCompletedTotal(sorted[i - 1])) rank = i + 1;
     ranks[sorted[i]] = rank;
   }
   return ranks;
@@ -793,39 +933,67 @@ function getRanks() {
 
 const RANK_EMOJI = { 1: '🥇', 2: '🥈', 3: '🥉' };
 
+function isGameComplete() {
+  if (!state || state.totalRounds === 0) return false;
+  return state.totalRounds > 0 && getLastCompleteRound() === state.totalRounds - 1;
+}
+
 // ── Render ──
 function render(options = {}) {
   if (!state) return;
   const { newRound = false } = options;
   const ranks = getRanks();
   const sorted = getSortedPlayers();
+  const complete = isGameComplete();
 
   // Status
-  const roundLabel = state.rounds === 0 ? 'スタート前' : `${state.rounds}ラウンド目`;
+  const completedRounds = getLastCompleteRound() + 1;
+  const totalLabel = state.totalRounds > 0 ? ` / ${state.totalRounds}` : '';
+  const roundLabel = completedRounds === 0 ? 'スタート前' : `${completedRounds}${totalLabel} ラウンド`;
   document.getElementById('gameStatus').textContent =
     `${roundLabel} — ${state.players.length}人で対戦中`;
 
-  // Update button label
-  document.getElementById('btnAddRound').textContent =
-    state.rounds === 0 ? 'ゲームスタート' : 'もう一回';
+  // Progress bar
+  const progressWrap = document.getElementById('progressWrap');
+  if (state.totalRounds > 0) {
+    progressWrap.style.display = 'block';
+    const pct = Math.min(100, (completedRounds / state.totalRounds) * 100);
+    document.getElementById('progressFill').style.width = pct + '%';
+  } else {
+    progressWrap.style.display = 'none';
+  }
 
-  // Measure name col width for sticky 2nd col
-  // Use a reasonable default, will update after render
-  const nameColWidth = 90;
-  document.getElementById('scoreTable').style.setProperty('--name-col-width', nameColWidth + 'px');
+  // Game complete banner
+  const banner = document.getElementById('gameCompleteBanner');
+  if (complete) {
+    const winner = sorted[0];
+    banner.style.display = 'block';
+    banner.className = 'game-complete-banner';
+    banner.innerHTML = `<div class="gc-title">🏆 ゲーム終了！優勝: ${escapeHTML(winner)}</div><div class="gc-sub">「ラウンド追加」で延長もできます</div>`;
+  } else {
+    banner.style.display = 'none';
+  }
 
-  // Table head: Name | Rank | 1回目 | 2回目 | ... | 合計
+  // Button label
+  const btnRound = document.getElementById('btnAddRound');
+  btnRound.textContent = 'ラウンド追加';
+
+  // Name col width
+  document.getElementById('scoreTable').style.setProperty('--name-col-width', '90px');
+
+  // Table head — show totalRounds columns
   const thead = document.getElementById('tableHead');
+  const displayCols = state.totalRounds || 0;
   let headHTML = '<tr><th></th><th>順位</th>';
-  for (let r = 1; r <= state.rounds; r++) {
-    const cls = newRound && r === state.rounds ? ' class="slide-in"' : '';
+  for (let r = 1; r <= displayCols; r++) {
+    const cls = newRound && r === displayCols ? ' class="slide-in"' : '';
     headHTML += `<th${cls}>${r}回目</th>`;
   }
-  if (state.rounds > 0) headHTML += '<th>合計</th>';
+  headHTML += '<th>合計</th>';
   headHTML += '</tr>';
   thead.innerHTML = headHTML;
 
-  // Table body — sorted by rank
+  // Table body
   const tbody = document.getElementById('tableBody');
   let bodyHTML = '';
   sorted.forEach((player) => {
@@ -837,40 +1005,40 @@ function render(options = {}) {
     bodyHTML += `<tr class="uno-color-${colorIdx}">`;
     bodyHTML += `<td>${escapeHTML(player)}</td>`;
 
-    // Rank
-    const emoji = RANK_EMOJI[rank] || '';
-    const label = emoji || `${rank}位`;
-    const rankCls = rank <= 3 ? `rank-${rank}` : 'rank-other';
-    const flipCls = rankChanged ? ' flip' : '';
-    bodyHTML += `<td class="col-rank ${rankCls}${flipCls}"><span class="rank-badge">${label}</span></td>`;
+    if (rank === null) {
+      bodyHTML += `<td class="col-rank"><span class="rank-badge" style="color:var(--ink2);">-</span></td>`;
+    } else {
+      const emoji = RANK_EMOJI[rank] || '';
+      const label = emoji || `${rank}位`;
+      const rankCls = rank <= 3 ? `rank-${rank}` : 'rank-other';
+      const flipCls = rankChanged ? ' flip' : '';
+      bodyHTML += `<td class="col-rank ${rankCls}${flipCls}"><span class="rank-badge">${label}</span></td>`;
+    }
 
-    // Round scores
-    for (let r = 0; r < state.rounds; r++) {
+    for (let r = 0; r < displayCols; r++) {
       const val = (state.scores[player] || [])[r];
-      const displayVal = val !== undefined ? val : '';
+      const hasValue = val !== undefined && val !== null;
       const isZero = val === 0;
-      const cls = newRound && r === state.rounds - 1 ? ' slide-in' : '';
+      const cls = newRound && r === displayCols - 1 ? ' slide-in' : '';
       const zeroCls = isZero ? ' zero-score' : '';
-      bodyHTML += `<td class="score-cell${cls}" data-player="${escapeAttr(player)}" data-round="${r}">`;
-      bodyHTML += `<span class="${zeroCls}">${isZero ? '★' : displayVal}</span>`;
+      bodyHTML += `<td class="score-cell${cls}" data-player="${escapeAttr(player)}" data-round="${r}"${!hasValue ? ' style="opacity:0.3;"' : ''}>`;
+      if (hasValue) {
+        bodyHTML += `<span class="${zeroCls}">${isZero ? '★' : val}</span>`;
+      } else {
+        bodyHTML += `<span>-</span>`;
+      }
       bodyHTML += '</td>';
     }
 
-    // Total
-    if (state.rounds > 0) {
-      bodyHTML += `<td class="col-total">${total}</td>`;
-    }
-
+    bodyHTML += `<td class="col-total">${total}</td>`;
     bodyHTML += '</tr>';
   });
   tbody.innerHTML = bodyHTML;
 
-  // Update sticky 2nd col offset after render
   requestAnimationFrame(() => {
     const firstTd = tbody.querySelector('td:first-child');
     if (firstTd) {
-      const w = firstTd.offsetWidth;
-      document.getElementById('scoreTable').style.setProperty('--name-col-width', w + 'px');
+      document.getElementById('scoreTable').style.setProperty('--name-col-width', firstTd.offsetWidth + 'px');
     }
   });
 
@@ -900,15 +1068,10 @@ document.getElementById('scoreTable').addEventListener('click', (e) => {
   const commit = () => {
     const raw = input.value.trim();
     const val = raw === '' ? undefined : Math.max(0, parseInt(raw, 10) || 0);
-
     if (!state.scores[player]) state.scores[player] = [];
-    while (state.scores[player].length <= round) {
-      state.scores[player].push(undefined);
-    }
+    while (state.scores[player].length <= round) state.scores[player].push(undefined);
     state.scores[player][round] = val;
-
     render();
-
     requestAnimationFrame(() => {
       const newCell = document.querySelector(
         `.score-cell[data-player="${CSS.escape(player)}"][data-round="${round}"]`
@@ -924,49 +1087,14 @@ document.getElementById('scoreTable').addEventListener('click', (e) => {
   input.addEventListener('blur', commit);
   input.addEventListener('keydown', (ev) => {
     if (ev.key === 'Enter') input.blur();
-    if (ev.key === 'Escape') {
-      input.removeEventListener('blur', commit);
-      render();
-    }
+    if (ev.key === 'Escape') { input.removeEventListener('blur', commit); render(); }
   });
 });
 
-// ── Winner Selection (もう一回) ──
-const modalWinner = document.getElementById('modalWinner');
-const winnerGrid = document.getElementById('winnerGrid');
-
+// ── Add Round ──
 document.getElementById('btnAddRound').addEventListener('click', () => {
-  // Update modal title based on round
-  document.querySelector('#modalWinner h2').textContent =
-    state.rounds === 0 ? '最初に勝ったのは？' : '勝ったのは？';
-  // Show winner selection modal
-  winnerGrid.innerHTML = '';
-  state.players.forEach(player => {
-    const btn = document.createElement('button');
-    btn.className = 'winner-btn';
-    btn.textContent = player;
-    btn.onclick = () => {
-      // Add new round: winner gets 0, others get undefined (to fill in)
-      state.rounds++;
-      state.players.forEach(p => {
-        if (!state.scores[p]) state.scores[p] = [];
-        while (state.scores[p].length < state.rounds) {
-          state.scores[p].push(undefined);
-        }
-        if (p === player) {
-          state.scores[p][state.rounds - 1] = 0;
-        }
-      });
-      modalWinner.classList.remove('active');
-      render({ newRound: true });
-    };
-    winnerGrid.appendChild(btn);
-  });
-  modalWinner.classList.add('active');
-});
-
-document.getElementById('btnCancelWinner').addEventListener('click', () => {
-  modalWinner.classList.remove('active');
+  state.totalRounds = (state.totalRounds || 0) + 1;
+  render({ newRound: true });
 });
 
 // ── Add Player (mid-game) ──
@@ -985,9 +1113,7 @@ document.getElementById('btnCancelPlayer').addEventListener('click', () => {
 });
 
 document.getElementById('btnConfirmPlayer').addEventListener('click', addPlayer);
-inputName.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') addPlayer();
-});
+inputName.addEventListener('keydown', (e) => { if (e.key === 'Enter') addPlayer(); });
 
 function addPlayer() {
   const name = inputName.value.trim();
@@ -1007,65 +1133,50 @@ function addPlayer() {
 // ── Reset ──
 const modalReset = document.getElementById('modalConfirmReset');
 
-document.getElementById('btnReset').addEventListener('click', () => {
-  modalReset.classList.add('active');
-});
-
-document.getElementById('btnCancelReset').addEventListener('click', () => {
-  modalReset.classList.remove('active');
-});
+document.getElementById('btnReset').addEventListener('click', () => { modalReset.classList.add('active'); });
+document.getElementById('btnCancelReset').addEventListener('click', () => { modalReset.classList.remove('active'); });
 
 document.getElementById('btnConfirmReset').addEventListener('click', () => {
+  const rememberedPlayers = state ? [...state.players] : [];
   clearState();
   modalReset.classList.remove('active');
-  setupPlayers = ['パパ', 'ママ', 'ゆうか', 'ゆうき', 'ゆうみ'];
+  setupPlayers = rememberedPlayers;
   showSetup();
 });
 
 // Close modals on overlay click
-[modalWinner, modalAdd, modalReset].forEach(modal => {
-  modal.addEventListener('click', (e) => {
-    if (e.target === modal) modal.classList.remove('active');
-  });
+[modalAdd, modalReset].forEach(modal => {
+  modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('active'); });
 });
 
 // ── Celebration ──
 let lastCompletedRound = -1;
 
 function checkRoundComplete() {
-  if (!state || state.rounds === 0) return;
-  const r = state.rounds - 1;
-  // Already celebrated this round?
-  if (r <= lastCompletedRound) return;
-  // Check all players have a score for this round
-  const allFilled = state.players.every(p => {
-    const scores = state.scores[p] || [];
-    return scores[r] !== undefined && scores[r] !== null;
-  });
-  if (!allFilled) return;
-  lastCompletedRound = r;
+  if (!state) return;
+  const currentLast = getLastCompleteRound();
+  if (currentLast <= lastCompletedRound) return;
+  lastCompletedRound = currentLast;
 
-  // Find round winner (lowest score this round, typically 0)
-  const ranks = getRanks();
+  // Re-render to update sort/ranks with newly completed round
+  render();
+
   const leader = getSortedPlayers()[0];
-  showCelebration(leader);
+  const gameFinished = isGameComplete();
+  showCelebration(gameFinished ? leader : null);
 }
 
 function showCelebration(leader) {
   const overlay = document.getElementById('celebrationOverlay');
   const canvas = document.getElementById('celebCanvas');
   const text = document.getElementById('celebrationText');
+  document.getElementById('celebWinner').textContent = leader ? `🏆 優勝: ${leader}` : '';
 
-  document.getElementById('celebWinner').textContent = `1位: ${leader}`;
-
-  // Reset text animation
   text.style.animation = 'none';
-  text.offsetHeight; // force reflow
+  text.offsetHeight;
   text.style.animation = '';
-
   overlay.classList.add('active');
 
-  // Canvas confetti / fireworks
   const ctx = canvas.getContext('2d');
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
@@ -1073,38 +1184,29 @@ function showCelebration(leader) {
   const particles = [];
   const colors = ['#ED1C24', '#0956BF', '#00A651', '#F5C518', '#FF6B9D', '#C77DFF', '#FFD700'];
 
-  // Spawn burst particles
   for (let i = 0; i < 120; i++) {
     const angle = (Math.PI * 2 * i) / 120 + (Math.random() - 0.5) * 0.5;
     const speed = 3 + Math.random() * 8;
-    const cx = canvas.width * (0.2 + Math.random() * 0.6);
-    const cy = canvas.height * (0.2 + Math.random() * 0.4);
     particles.push({
-      x: cx, y: cy,
-      vx: Math.cos(angle) * speed,
-      vy: Math.sin(angle) * speed - 2,
+      x: canvas.width * (0.2 + Math.random() * 0.6),
+      y: canvas.height * (0.2 + Math.random() * 0.4),
+      vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed - 2,
       size: 3 + Math.random() * 5,
       color: colors[Math.floor(Math.random() * colors.length)],
-      life: 1,
-      decay: 0.008 + Math.random() * 0.012,
+      life: 1, decay: 0.008 + Math.random() * 0.012,
       shape: Math.random() > 0.5 ? 'circle' : 'rect',
       rotation: Math.random() * Math.PI * 2,
       rotSpeed: (Math.random() - 0.5) * 0.2,
     });
   }
 
-  // Add some big sparkle stars
   for (let i = 0; i < 15; i++) {
     particles.push({
       x: Math.random() * canvas.width,
       y: Math.random() * canvas.height * 0.6,
-      vx: (Math.random() - 0.5) * 2,
-      vy: Math.random() * 1 + 0.5,
-      size: 8 + Math.random() * 8,
-      color: '#FFD700',
-      life: 1,
-      decay: 0.006 + Math.random() * 0.008,
-      shape: 'star',
+      vx: (Math.random() - 0.5) * 2, vy: Math.random() * 1 + 0.5,
+      size: 8 + Math.random() * 8, color: '#FFD700',
+      life: 1, decay: 0.006 + Math.random() * 0.008, shape: 'star',
       rotation: Math.random() * Math.PI * 2,
       rotSpeed: (Math.random() - 0.5) * 0.1,
     });
@@ -1114,39 +1216,26 @@ function showCelebration(leader) {
   function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     let alive = false;
-
     for (const p of particles) {
       if (p.life <= 0) continue;
       alive = true;
-      p.x += p.vx;
-      p.y += p.vy;
-      p.vy += 0.12; // gravity
-      p.life -= p.decay;
-      p.rotation += p.rotSpeed;
-
+      p.x += p.vx; p.y += p.vy; p.vy += 0.12;
+      p.life -= p.decay; p.rotation += p.rotSpeed;
       ctx.save();
       ctx.globalAlpha = Math.max(0, p.life);
       ctx.translate(p.x, p.y);
       ctx.rotate(p.rotation);
       ctx.fillStyle = p.color;
-
       if (p.shape === 'circle') {
-        ctx.beginPath();
-        ctx.arc(0, 0, p.size, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.beginPath(); ctx.arc(0, 0, p.size, 0, Math.PI * 2); ctx.fill();
       } else if (p.shape === 'rect') {
         ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
       } else if (p.shape === 'star') {
-        drawStar(ctx, 0, 0, 5, p.size, p.size * 0.4);
-        ctx.fill();
+        drawStar(ctx, 0, 0, 5, p.size, p.size * 0.4); ctx.fill();
       }
-
       ctx.restore();
     }
-
-    if (alive) {
-      animId = requestAnimationFrame(animate);
-    }
+    if (alive) animId = requestAnimationFrame(animate);
   }
 
   function drawStar(ctx, cx, cy, spikes, outerR, innerR) {
@@ -1154,16 +1243,13 @@ function showCelebration(leader) {
     for (let i = 0; i < spikes * 2; i++) {
       const r = i % 2 === 0 ? outerR : innerR;
       const angle = (Math.PI * i) / spikes - Math.PI / 2;
-      const x = cx + Math.cos(angle) * r;
-      const y = cy + Math.sin(angle) * r;
-      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      i === 0 ? ctx.moveTo(cx + Math.cos(angle) * r, cy + Math.sin(angle) * r)
+              : ctx.lineTo(cx + Math.cos(angle) * r, cy + Math.sin(angle) * r);
     }
     ctx.closePath();
   }
 
   animate();
-
-  // Dismiss on tap or after 3 seconds
   const dismiss = () => {
     overlay.classList.remove('active');
     cancelAnimationFrame(animId);
@@ -1176,11 +1262,8 @@ function showCelebration(leader) {
 
 // ── Utils ──
 function escapeHTML(str) {
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
+  const d = document.createElement('div'); d.textContent = str; return d.innerHTML;
 }
-
 function escapeAttr(str) {
   return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;');
 }
@@ -1191,6 +1274,7 @@ if (state && state.players && state.players.length > 0) {
 } else {
   showSetup();
 }
+
 </script>
 </body>
 </html>
