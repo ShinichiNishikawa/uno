@@ -772,6 +772,8 @@ function getSortedPlayers() {
   return [...state.players].sort((a, b) => getTotal(a) - getTotal(b));
 }
 
+// Competition ranking (1224方式): 同点は同順位、次の順位はその分飛ばす
+// 例: 1位,1位,3位,4位（2位は飛ぶ）
 function getRanks() {
   const sorted = getSortedPlayers();
   const ranks = {};
