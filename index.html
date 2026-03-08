@@ -31,12 +31,12 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
-.screen { display: none; }
-.screen.active { display: block; }
+.screen { display: none !important; }
+.screen.active { display: block !important; }
 
 /* ── Setup Screen ── */
-#setupScreen {
-  display: flex;
+#setupScreen.active {
+  display: flex !important;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -178,7 +178,7 @@ body {
 }
 
 /* ── Game Screen ── */
-#gameScreen { padding-bottom: 80px; }
+#gameScreen.active { padding-bottom: 80px; }
 
 @keyframes dropIn {
   from { opacity: 0; transform: translateY(-30px); }
