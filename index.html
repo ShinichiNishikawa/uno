@@ -37,7 +37,7 @@ body {
 /* ── Screens ── */
 .screen { display: none !important; }
 .screen.active { display: block !important; }
-#setupScreen.active {
+#setupStep1.active, #setupStep2.active {
   display: flex !important;
   flex-direction: column;
   align-items: center;
@@ -533,29 +533,6 @@ td:first-child {
 }
 .modal-input:focus { border-color: var(--uno-blue); }
 
-/* Winner grid */
-.winner-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.winner-btn {
-  background: var(--card-alt);
-  border: 2px solid var(--border);
-  border-radius: 12px;
-  padding: 14px 8px;
-  font-family: 'Zen Maru Gothic', sans-serif;
-  font-weight: 900;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: all 0.15s;
-  color: var(--ink);
-}
-.winner-btn:hover { border-color: var(--uno-green); background: #f4fcf4; }
-.winner-btn:active { transform: scale(0.95); }
-
 /* Confirm body */
 .confirm-body {
   text-align: center;
@@ -568,6 +545,9 @@ td:first-child {
 /* ── Celebration ── */
 .celebration-overlay {
   display: none; position: fixed; inset: 0; z-index: 200; pointer-events: none;
+  background: rgba(250, 250, 248, 0.88);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 .celebration-overlay.active { display: block; pointer-events: auto; }
 .celebration-overlay canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
@@ -628,8 +608,32 @@ td:first-child {
 </head>
 <body>
 
-<!-- ════ Setup Screen ════ -->
-<div id="setupScreen" class="screen active">
+<!-- ════ Setup Screen: Step 1 - Round Count ════ -->
+<div id="setupStep1" class="screen active">
+  <div class="setup-card">
+    <div class="logo">
+      <span class="logo-pill" style="background:var(--uno-red);">U</span>
+      <span class="logo-pill" style="background:var(--uno-blue);">N</span>
+      <span class="logo-pill" style="background:var(--uno-green);">O</span>
+      <span class="logo-text">スコア</span>
+    </div>
+    <div class="setup-subtitle">何ラウンドやる？</div>
+
+    <div class="round-section">
+      <div class="round-picker" id="roundPicker">
+        <button class="round-opt" data-rounds="1">1</button>
+        <button class="round-opt" data-rounds="3">3</button>
+        <button class="round-opt selected" data-rounds="5">5</button>
+      </div>
+      <div class="setup-hint" style="margin-top:10px;">あとで増やせるよ</div>
+    </div>
+
+    <button class="btn-start" id="btnToStep2">次へ</button>
+  </div>
+</div>
+
+<!-- ════ Setup Screen: Step 2 - Player Names ════ -->
+<div id="setupStep2" class="screen">
   <div class="setup-card">
     <div class="logo">
       <span class="logo-pill" style="background:var(--uno-red);">U</span>
@@ -644,17 +648,6 @@ td:first-child {
     <div class="add-row">
       <input type="text" id="setupNameInput" placeholder="名前を入力" autocomplete="off">
       <button id="setupAddBtn">追加</button>
-    </div>
-
-    <div class="round-section">
-      <div class="round-label">何ラウンドやる？</div>
-      <div class="round-picker" id="roundPicker">
-        <button class="round-opt" data-rounds="3">3</button>
-        <button class="round-opt selected" data-rounds="5">5</button>
-        <button class="round-opt" data-rounds="7">7</button>
-        <button class="round-opt" data-rounds="10">10</button>
-        <button class="round-opt round-opt-free" data-rounds="0">∞</button>
-      </div>
     </div>
 
     <button class="btn-start" id="btnStartGame">ゲーム開始</button>
@@ -687,7 +680,7 @@ td:first-child {
   </div>
 
   <div class="action-bar">
-    <button class="btn btn-primary" id="btnAddRound">ゲームスタート</button>
+    <button class="btn btn-primary" id="btnAddRound">ラウンド追加</button>
     <button class="btn btn-secondary" id="btnAddPlayer">参加者追加</button>
     <button class="btn-ghost" id="btnReset">最初から</button>
   </div>
@@ -700,17 +693,6 @@ td:first-child {
     <div class="panpaka">パンパカパーン！！</div>
     <div class="winner-name" id="celebWinner"></div>
     <div class="emojis">🎉👏🎊🎆</div>
-  </div>
-</div>
-
-<!-- Winner Select Modal -->
-<div class="modal-overlay" id="modalWinner">
-  <div class="modal">
-    <h2 id="winnerModalTitle">勝ったのは？</h2>
-    <div class="winner-grid" id="winnerGrid"></div>
-    <div class="modal-actions">
-      <button class="btn btn-secondary" id="btnCancelWinner">キャンセル</button>
-    </div>
   </div>
 </div>
 
@@ -755,6 +737,11 @@ function loadState() {
     if (saved) {
       const parsed = JSON.parse(saved);
       if (!parsed.totalRounds) parsed.totalRounds = 0; // ∞ mode
+      // Migration: rounds → totalRounds (旧データ互換)
+      if (parsed.rounds !== undefined) {
+        parsed.totalRounds = Math.max(parsed.totalRounds || 0, parsed.rounds || 0);
+        delete parsed.rounds;
+      }
       parsed.players.forEach(p => {
         if (!parsed.scores[p]) parsed.scores[p] = [];
       });
@@ -776,22 +763,39 @@ function clearState() {
 }
 
 // ── Setup Screen ──
-const setupScreen = document.getElementById('setupScreen');
+const setupStep1 = document.getElementById('setupStep1');
+const setupStep2 = document.getElementById('setupStep2');
 const gameScreen = document.getElementById('gameScreen');
 let setupPlayers = [];
 let setupRounds = 5;
 
-function showSetup() {
-  setupScreen.classList.add('active');
+function hideAllScreens() {
+  setupStep1.classList.remove('active');
+  setupStep2.classList.remove('active');
   gameScreen.classList.remove('active');
+}
+
+function showSetup() {
+  hideAllScreens();
+  setupStep1.classList.add('active');
+  // Restore round picker selection
+  document.querySelectorAll('.round-opt').forEach(o => {
+    o.classList.toggle('selected', parseInt(o.dataset.rounds, 10) === setupRounds);
+  });
+}
+
+function showStep2() {
+  hideAllScreens();
+  setupStep2.classList.add('active');
   renderSetupChips();
+  setTimeout(() => document.getElementById('setupNameInput').focus(), 100);
 }
 
 function showGame() {
-  setupScreen.classList.remove('active');
+  hideAllScreens();
   gameScreen.classList.add('active');
   assignColors();
-  if (state && state.rounds > 0) lastCompletedRound = state.rounds - 1;
+  lastCompletedRound = getLastCompleteRound();
   render();
 }
 
@@ -820,9 +824,31 @@ function renderSetupChips() {
   document.getElementById('btnStartGame').disabled = setupPlayers.length < 2;
 }
 
+// Step 1: Round picker
+document.getElementById('roundPicker').addEventListener('click', (e) => {
+  const opt = e.target.closest('.round-opt');
+  if (!opt) return;
+  document.querySelectorAll('.round-opt').forEach(o => o.classList.remove('selected'));
+  opt.classList.add('selected');
+  setupRounds = parseInt(opt.dataset.rounds, 10);
+});
+
+document.getElementById('btnToStep2').addEventListener('click', () => {
+  showStep2();
+});
+
+// Step 2: Player names
 document.getElementById('setupAddBtn').addEventListener('click', addSetupPlayer);
-document.getElementById('setupNameInput').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') addSetupPlayer();
+
+// IME-aware Enter handling
+let isComposing = false;
+const setupNameInput = document.getElementById('setupNameInput');
+setupNameInput.addEventListener('compositionstart', () => { isComposing = true; });
+setupNameInput.addEventListener('compositionend', () => {
+  isComposing = false;
+});
+setupNameInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !isComposing) addSetupPlayer();
 });
 
 function addSetupPlayer() {
@@ -835,21 +861,11 @@ function addSetupPlayer() {
   input.focus();
 }
 
-// Round picker
-document.getElementById('roundPicker').addEventListener('click', (e) => {
-  const opt = e.target.closest('.round-opt');
-  if (!opt) return;
-  document.querySelectorAll('.round-opt').forEach(o => o.classList.remove('selected'));
-  opt.classList.add('selected');
-  setupRounds = parseInt(opt.dataset.rounds, 10); // 0 = unlimited
-});
-
 // Start game
 document.getElementById('btnStartGame').addEventListener('click', () => {
   if (setupPlayers.length < 2) return;
   state = {
     players: [...setupPlayers],
-    rounds: 0,
     totalRounds: setupRounds,
     scores: {}
   };
@@ -859,21 +875,57 @@ document.getElementById('btnStartGame').addEventListener('click', () => {
 });
 
 // ── Derived ──
+
+// ラウンド r が完了しているか（全員スコア入力済み）
+function isRoundComplete(r) {
+  return state.players.every(p => {
+    const v = (state.scores[p] || [])[r];
+    return v !== undefined && v !== null;
+  });
+}
+
+// 最後の完了ラウンドのインデックス（連続して完了している最後）
+function getLastCompleteRound() {
+  let last = -1;
+  for (let r = 0; r < (state.totalRounds || 0); r++) {
+    if (isRoundComplete(r)) last = r;
+    else break;
+  }
+  return last;
+}
+
+// 完了ラウンドまでの合計（ソート・順位用）
+function getCompletedTotal(player) {
+  const last = getLastCompleteRound();
+  let sum = 0;
+  for (let r = 0; r <= last; r++) {
+    sum += (state.scores[player] || [])[r] || 0;
+  }
+  return sum;
+}
+
+// 全スコアの合計（表示用）
 function getTotal(player) {
   return (state.scores[player] || []).reduce((a, b) => a + (b || 0), 0);
 }
 
 function getSortedPlayers() {
-  return [...state.players].sort((a, b) => getTotal(a) - getTotal(b));
+  return [...state.players].sort((a, b) => getCompletedTotal(a) - getCompletedTotal(b));
 }
 
 // Competition ranking (1224方式): 同点は同順位、次の順位はその分飛ばす
+// 完了ラウンドがない場合は全員 null（順位なし）
 function getRanks() {
+  const hasCompleted = getLastCompleteRound() >= 0;
   const sorted = getSortedPlayers();
   const ranks = {};
+  if (!hasCompleted) {
+    sorted.forEach(p => ranks[p] = null);
+    return ranks;
+  }
   let rank = 1;
   for (let i = 0; i < sorted.length; i++) {
-    if (i > 0 && getTotal(sorted[i]) > getTotal(sorted[i - 1])) rank = i + 1;
+    if (i > 0 && getCompletedTotal(sorted[i]) > getCompletedTotal(sorted[i - 1])) rank = i + 1;
     ranks[sorted[i]] = rank;
   }
   return ranks;
@@ -883,7 +935,7 @@ const RANK_EMOJI = { 1: '🥇', 2: '🥈', 3: '🥉' };
 
 function isGameComplete() {
   if (!state || state.totalRounds === 0) return false;
-  return state.rounds >= state.totalRounds;
+  return state.totalRounds > 0 && getLastCompleteRound() === state.totalRounds - 1;
 }
 
 // ── Render ──
@@ -895,8 +947,9 @@ function render(options = {}) {
   const complete = isGameComplete();
 
   // Status
+  const completedRounds = getLastCompleteRound() + 1;
   const totalLabel = state.totalRounds > 0 ? ` / ${state.totalRounds}` : '';
-  const roundLabel = state.rounds === 0 ? 'スタート前' : `${state.rounds}${totalLabel} ラウンド`;
+  const roundLabel = completedRounds === 0 ? 'スタート前' : `${completedRounds}${totalLabel} ラウンド`;
   document.getElementById('gameStatus').textContent =
     `${roundLabel} — ${state.players.length}人で対戦中`;
 
@@ -904,7 +957,7 @@ function render(options = {}) {
   const progressWrap = document.getElementById('progressWrap');
   if (state.totalRounds > 0) {
     progressWrap.style.display = 'block';
-    const pct = Math.min(100, (state.rounds / state.totalRounds) * 100);
+    const pct = Math.min(100, (completedRounds / state.totalRounds) * 100);
     document.getElementById('progressFill').style.width = pct + '%';
   } else {
     progressWrap.style.display = 'none';
@@ -923,19 +976,20 @@ function render(options = {}) {
 
   // Button label
   const btnRound = document.getElementById('btnAddRound');
-  btnRound.textContent = state.rounds === 0 ? 'ゲームスタート' : 'ラウンド追加';
+  btnRound.textContent = 'ラウンド追加';
 
   // Name col width
   document.getElementById('scoreTable').style.setProperty('--name-col-width', '90px');
 
-  // Table head
+  // Table head — show totalRounds columns
   const thead = document.getElementById('tableHead');
+  const displayCols = state.totalRounds || 0;
   let headHTML = '<tr><th></th><th>順位</th>';
-  for (let r = 1; r <= state.rounds; r++) {
-    const cls = newRound && r === state.rounds ? ' class="slide-in"' : '';
+  for (let r = 1; r <= displayCols; r++) {
+    const cls = newRound && r === displayCols ? ' class="slide-in"' : '';
     headHTML += `<th${cls}>${r}回目</th>`;
   }
-  if (state.rounds > 0) headHTML += '<th>合計</th>';
+  headHTML += '<th>合計</th>';
   headHTML += '</tr>';
   thead.innerHTML = headHTML;
 
@@ -951,24 +1005,32 @@ function render(options = {}) {
     bodyHTML += `<tr class="uno-color-${colorIdx}">`;
     bodyHTML += `<td>${escapeHTML(player)}</td>`;
 
-    const emoji = RANK_EMOJI[rank] || '';
-    const label = emoji || `${rank}位`;
-    const rankCls = rank <= 3 ? `rank-${rank}` : 'rank-other';
-    const flipCls = rankChanged ? ' flip' : '';
-    bodyHTML += `<td class="col-rank ${rankCls}${flipCls}"><span class="rank-badge">${label}</span></td>`;
+    if (rank === null) {
+      bodyHTML += `<td class="col-rank"><span class="rank-badge" style="color:var(--ink2);">-</span></td>`;
+    } else {
+      const emoji = RANK_EMOJI[rank] || '';
+      const label = emoji || `${rank}位`;
+      const rankCls = rank <= 3 ? `rank-${rank}` : 'rank-other';
+      const flipCls = rankChanged ? ' flip' : '';
+      bodyHTML += `<td class="col-rank ${rankCls}${flipCls}"><span class="rank-badge">${label}</span></td>`;
+    }
 
-    for (let r = 0; r < state.rounds; r++) {
+    for (let r = 0; r < displayCols; r++) {
       const val = (state.scores[player] || [])[r];
-      const displayVal = val !== undefined ? val : '';
+      const hasValue = val !== undefined && val !== null;
       const isZero = val === 0;
-      const cls = newRound && r === state.rounds - 1 ? ' slide-in' : '';
+      const cls = newRound && r === displayCols - 1 ? ' slide-in' : '';
       const zeroCls = isZero ? ' zero-score' : '';
-      bodyHTML += `<td class="score-cell${cls}" data-player="${escapeAttr(player)}" data-round="${r}">`;
-      bodyHTML += `<span class="${zeroCls}">${isZero ? '★' : displayVal}</span>`;
+      bodyHTML += `<td class="score-cell${cls}" data-player="${escapeAttr(player)}" data-round="${r}"${!hasValue ? ' style="opacity:0.3;"' : ''}>`;
+      if (hasValue) {
+        bodyHTML += `<span class="${zeroCls}">${isZero ? '★' : val}</span>`;
+      } else {
+        bodyHTML += `<span>-</span>`;
+      }
       bodyHTML += '</td>';
     }
 
-    if (state.rounds > 0) bodyHTML += `<td class="col-total">${total}</td>`;
+    bodyHTML += `<td class="col-total">${total}</td>`;
     bodyHTML += '</tr>';
   });
   tbody.innerHTML = bodyHTML;
@@ -1029,35 +1091,10 @@ document.getElementById('scoreTable').addEventListener('click', (e) => {
   });
 });
 
-// ── Winner Selection ──
-const modalWinner = document.getElementById('modalWinner');
-const winnerGrid = document.getElementById('winnerGrid');
-
+// ── Add Round ──
 document.getElementById('btnAddRound').addEventListener('click', () => {
-  document.getElementById('winnerModalTitle').textContent =
-    state.rounds === 0 ? '最初に勝ったのは？' : '勝ったのは？';
-  winnerGrid.innerHTML = '';
-  state.players.forEach(player => {
-    const btn = document.createElement('button');
-    btn.className = 'winner-btn';
-    btn.textContent = player;
-    btn.onclick = () => {
-      state.rounds++;
-      state.players.forEach(p => {
-        if (!state.scores[p]) state.scores[p] = [];
-        while (state.scores[p].length < state.rounds) state.scores[p].push(undefined);
-        if (p === player) state.scores[p][state.rounds - 1] = 0;
-      });
-      modalWinner.classList.remove('active');
-      render({ newRound: true });
-    };
-    winnerGrid.appendChild(btn);
-  });
-  modalWinner.classList.add('active');
-});
-
-document.getElementById('btnCancelWinner').addEventListener('click', () => {
-  modalWinner.classList.remove('active');
+  state.totalRounds = (state.totalRounds || 0) + 1;
+  render({ newRound: true });
 });
 
 // ── Add Player (mid-game) ──
@@ -1100,14 +1137,15 @@ document.getElementById('btnReset').addEventListener('click', () => { modalReset
 document.getElementById('btnCancelReset').addEventListener('click', () => { modalReset.classList.remove('active'); });
 
 document.getElementById('btnConfirmReset').addEventListener('click', () => {
+  const rememberedPlayers = state ? [...state.players] : [];
   clearState();
   modalReset.classList.remove('active');
-  setupPlayers = [];
+  setupPlayers = rememberedPlayers;
   showSetup();
 });
 
 // Close modals on overlay click
-[modalWinner, modalAdd, modalReset].forEach(modal => {
+[modalAdd, modalReset].forEach(modal => {
   modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('active'); });
 });
 
@@ -1115,25 +1153,24 @@ document.getElementById('btnConfirmReset').addEventListener('click', () => {
 let lastCompletedRound = -1;
 
 function checkRoundComplete() {
-  if (!state || state.rounds === 0) return;
-  const r = state.rounds - 1;
-  if (r <= lastCompletedRound) return;
-  const allFilled = state.players.every(p => {
-    const scores = state.scores[p] || [];
-    return scores[r] !== undefined && scores[r] !== null;
-  });
-  if (!allFilled) return;
-  lastCompletedRound = r;
+  if (!state) return;
+  const currentLast = getLastCompleteRound();
+  if (currentLast <= lastCompletedRound) return;
+  lastCompletedRound = currentLast;
+
+  // Re-render to update sort/ranks with newly completed round
+  render();
 
   const leader = getSortedPlayers()[0];
-  showCelebration(leader);
+  const gameFinished = isGameComplete();
+  showCelebration(gameFinished ? leader : null);
 }
 
 function showCelebration(leader) {
   const overlay = document.getElementById('celebrationOverlay');
   const canvas = document.getElementById('celebCanvas');
   const text = document.getElementById('celebrationText');
-  document.getElementById('celebWinner').textContent = `1位: ${leader}`;
+  document.getElementById('celebWinner').textContent = leader ? `🏆 優勝: ${leader}` : '';
 
   text.style.animation = 'none';
   text.offsetHeight;
@@ -1237,6 +1274,7 @@ if (state && state.players && state.players.length > 0) {
 } else {
   showSetup();
 }
+
 </script>
 </body>
 </html>
