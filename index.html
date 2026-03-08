@@ -27,7 +27,7 @@
 
 body {
   font-family: 'Zen Maru Gothic', sans-serif;
-  font-size: 17px;
+  font-size: 20px;
   background: var(--bg);
   color: var(--ink);
   min-height: 100dvh;
@@ -98,7 +98,7 @@ body {
 .setup-subtitle {
   text-align: center;
   color: var(--ink2);
-  font-size: 0.9rem;
+  font-size: 1.1rem;
   margin-bottom: 20px;
   font-weight: 400;
 }
@@ -116,9 +116,9 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 12px;
+  padding: 8px 14px;
   border-radius: 20px;
-  font-size: 0.85rem;
+  font-size: 1rem;
   font-weight: 700;
   color: white;
   animation: chipPop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) both;
@@ -133,10 +133,10 @@ body {
   background: rgba(255,255,255,0.3);
   border: none;
   color: white;
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   line-height: 1;
   cursor: pointer;
   display: flex;
@@ -161,10 +161,10 @@ body {
   min-width: 0;
   background: var(--card-alt);
   border: 2px solid var(--border);
-  border-radius: 10px;
+  border-radius: 12px;
   font-family: 'Zen Maru Gothic', sans-serif;
-  font-size: 1rem;
-  padding: 10px 14px;
+  font-size: 1.1rem;
+  padding: 12px 16px;
   color: var(--ink);
   outline: none;
   transition: border-color 0.2s;
@@ -177,10 +177,10 @@ body {
   background: var(--card-alt);
   border: 2px solid var(--border);
   border-radius: 10px;
-  padding: 10px 16px;
+  padding: 12px 18px;
   font-family: 'Zen Maru Gothic', sans-serif;
   font-weight: 700;
-  font-size: 0.85rem;
+  font-size: 1rem;
   cursor: pointer;
   color: var(--uno-blue);
   white-space: nowrap;
@@ -196,7 +196,7 @@ body {
 }
 
 .round-label {
-  font-size: 0.85rem;
+  font-size: 1rem;
   color: var(--ink2);
   margin-bottom: 8px;
   text-align: center;
@@ -210,14 +210,14 @@ body {
 }
 
 .round-opt {
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
   border: 2px solid var(--border);
   background: var(--card);
   font-family: 'Zen Maru Gothic', sans-serif;
   font-weight: 900;
-  font-size: 1rem;
+  font-size: 1.2rem;
   color: var(--ink);
   cursor: pointer;
   transition: all 0.15s;
@@ -233,9 +233,9 @@ body {
 .round-opt:active { transform: scale(0.92); }
 
 .round-opt-free {
-  padding: 0 12px;
+  padding: 0 14px;
   width: auto;
-  font-size: 0.8rem;
+  font-size: 1rem;
   font-weight: 700;
 }
 
@@ -246,10 +246,10 @@ body {
   color: white;
   border: none;
   border-radius: 12px;
-  padding: 14px;
+  padding: 16px;
   font-family: 'Zen Maru Gothic', sans-serif;
   font-weight: 900;
-  font-size: 1rem;
+  font-size: 1.1rem;
   cursor: pointer;
   box-shadow: 0 3px 12px rgba(0,166,81,0.3);
   transition: transform 0.15s, box-shadow 0.15s;
@@ -262,7 +262,7 @@ body {
 .setup-hint {
   text-align: center;
   color: var(--ink2);
-  font-size: 0.82rem;
+  font-size: 0.95rem;
   margin-top: 10px;
 }
 
@@ -275,14 +275,14 @@ body {
 
 .game-status {
   color: var(--ink2);
-  font-size: 0.88rem;
+  font-size: 1rem;
   margin-top: 2px;
 }
 
 /* Progress bar */
 .progress-wrap {
   margin: 8px 20px 0;
-  height: 6px;
+  height: 8px;
   background: var(--border);
   border-radius: 3px;
   overflow: hidden;
@@ -317,9 +317,9 @@ thead th {
   top: 0;
   background: var(--card-alt);
   font-weight: 700;
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   color: var(--ink2);
-  padding: 10px 10px;
+  padding: 12px 12px;
   white-space: nowrap;
   border-bottom: 2px solid var(--border);
   z-index: 2;
@@ -338,17 +338,17 @@ thead th:nth-child(1), thead th:nth-child(2) {
 }
 
 td {
-  padding: 10px 10px;
+  padding: 12px 12px;
   text-align: center;
   border-bottom: 1px solid var(--border);
   white-space: nowrap;
-  font-size: 0.95rem;
+  font-size: 1.1rem;
 }
 
 td:first-child {
   text-align: left;
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: 1.05rem;
   padding-left: 14px;
 }
 
@@ -359,14 +359,14 @@ td:first-child {
 .uno-color-3 td:first-child { border-left: 4px solid var(--uno-yellow); }
 
 /* Rank */
-.col-rank { min-width: 44px; padding: 6px 6px; }
+.col-rank { min-width: 50px; padding: 8px 6px; }
 
 .rank-badge {
   display: inline-flex;
   align-items: center;
-  font-size: 0.82rem;
+  font-size: 1rem;
   font-weight: 900;
-  padding: 3px 9px;
+  padding: 4px 10px;
   border-radius: 10px;
 }
 
@@ -375,12 +375,12 @@ td:first-child {
 .rank-3 .rank-badge { background: #FDEAE4; color: #C44A1A; }
 .rank-other .rank-badge { background: var(--card-alt); color: var(--ink2); }
 
-.col-total { font-weight: 900; font-size: 1rem; }
+.col-total { font-weight: 900; font-size: 1.2rem; }
 
 /* Score cells */
 .score-cell {
   cursor: pointer;
-  min-width: 52px;
+  min-width: 58px;
   transition: background 0.15s;
   position: relative;
 }
@@ -388,16 +388,16 @@ td:first-child {
 .score-cell:hover { background: var(--card-alt); }
 
 .score-cell input {
-  width: 50px;
+  width: 56px;
   background: var(--card-alt);
   border: 2px solid var(--uno-blue);
   border-radius: 8px;
   color: var(--ink);
   font-family: 'Zen Maru Gothic', sans-serif;
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 1.1rem;
   text-align: center;
-  padding: 4px 2px;
+  padding: 6px 2px;
   outline: none;
 }
 
@@ -449,10 +449,10 @@ td:first-child {
 .btn {
   font-family: 'Zen Maru Gothic', sans-serif;
   font-weight: 700;
-  font-size: 0.82rem;
+  font-size: 1rem;
   border: none;
-  border-radius: 10px;
-  padding: 10px 18px;
+  border-radius: 12px;
+  padding: 14px 20px;
   cursor: pointer;
   transition: transform 0.12s;
 }
@@ -476,7 +476,7 @@ td:first-child {
   border: none;
   color: var(--ink2);
   font-family: 'Zen Maru Gothic', sans-serif;
-  font-size: 0.88rem;
+  font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
   padding: 8px 6px;
@@ -509,7 +509,7 @@ td:first-child {
 
 .modal h2 {
   font-weight: 900;
-  font-size: 1rem;
+  font-size: 1.2rem;
   margin-bottom: 16px;
   text-align: center;
 }
@@ -524,11 +524,11 @@ td:first-child {
   width: 100%;
   background: var(--card-alt);
   border: 2px solid var(--border);
-  border-radius: 10px;
+  border-radius: 12px;
   color: var(--ink);
   font-family: 'Zen Maru Gothic', sans-serif;
-  font-size: 1rem;
-  padding: 10px 14px;
+  font-size: 1.1rem;
+  padding: 12px 16px;
   outline: none;
   margin-bottom: 16px;
 }
@@ -539,9 +539,9 @@ td:first-child {
   text-align: center;
   margin-bottom: 20px;
   line-height: 1.6;
-  font-size: 0.92rem;
+  font-size: 1.05rem;
 }
-.confirm-body .icon { font-size: 2rem; margin-bottom: 8px; }
+.confirm-body .icon { font-size: 2.5rem; margin-bottom: 8px; }
 
 /* ── Celebration ── */
 .celebration-overlay {
@@ -616,11 +616,11 @@ td:first-child {
 }
 .game-complete-banner .gc-title {
   font-weight: 900;
-  font-size: 1.1rem;
+  font-size: 1.3rem;
   color: #B8860B;
 }
 .game-complete-banner .gc-sub {
-  font-size: 0.8rem;
+  font-size: 1rem;
   color: #B8860B;
   margin-top: 2px;
   opacity: 0.7;
@@ -628,12 +628,12 @@ td:first-child {
 
 /* ── Responsive ── */
 @media (max-width: 400px) {
-  .logo-pill, .logo-text { font-size: 1.3rem; }
-  td:first-child { font-size: 0.88rem; padding-left: 10px; }
-  .btn { padding: 10px 14px; font-size: 0.85rem; }
-  .score-cell input { width: 48px; }
+  .logo-pill, .logo-text { font-size: 1.4rem; }
+  td:first-child { font-size: 1rem; padding-left: 10px; }
+  .btn { padding: 12px 16px; font-size: 0.95rem; }
+  .score-cell input { width: 52px; }
   .setup-card { padding: 22px 16px; }
-  .round-opt { width: 40px; height: 40px; font-size: 0.95rem; }
+  .round-opt { width: 48px; height: 48px; font-size: 1.1rem; }
 }
 </style>
 </head>
@@ -690,10 +690,10 @@ td:first-child {
 <div id="gameScreen" class="screen">
   <div class="game-header">
     <div class="logo">
-      <span class="logo-pill" style="background:var(--uno-red);font-size:1rem;padding:1px 7px;">U</span>
-      <span class="logo-pill" style="background:var(--uno-blue);font-size:1rem;padding:1px 7px;">N</span>
-      <span class="logo-pill" style="background:var(--uno-green);font-size:1rem;padding:1px 7px;">O</span>
-      <span class="logo-text" style="font-size:1rem;">スコア</span>
+      <span class="logo-pill" style="background:var(--uno-red);font-size:1.2rem;padding:2px 8px;">U</span>
+      <span class="logo-pill" style="background:var(--uno-blue);font-size:1.2rem;padding:2px 8px;">N</span>
+      <span class="logo-pill" style="background:var(--uno-green);font-size:1.2rem;padding:2px 8px;">O</span>
+      <span class="logo-text" style="font-size:1.2rem;">スコア</span>
     </div>
     <div class="game-status" id="gameStatus"></div>
     <div class="progress-wrap" id="progressWrap" style="display:none;">
