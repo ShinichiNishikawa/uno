@@ -1119,6 +1119,14 @@ document.getElementById('scoreTable').addEventListener('click', (e) => {
     while (state.scores[player].length <= round) state.scores[player].push(undefined);
     state.scores[player][round] = val;
     render();
+
+    // Auto-advance must happen synchronously (same call stack as user gesture)
+    // to satisfy iOS Safari's focus policy
+    if (autoAdvance && val !== undefined) {
+      const nextEmpty = findNextEmptyCell(round);
+      if (nextEmpty) nextEmpty.click();
+    }
+
     requestAnimationFrame(() => {
       const newCell = document.querySelector(
         `.score-cell[data-player="${CSS.escape(player)}"][data-round="${round}"]`
@@ -1128,11 +1136,6 @@ document.getElementById('scoreTable').addEventListener('click', (e) => {
         newCell.addEventListener('animationend', () => newCell.classList.remove('bounce'), { once: true });
       }
       checkRoundComplete();
-      // Auto-advance to next empty cell in the same round
-      if (autoAdvance && val !== undefined) {
-        const nextEmpty = findNextEmptyCell(round);
-        if (nextEmpty) nextEmpty.click();
-      }
     });
   };
 
