@@ -1238,7 +1238,7 @@ function animateReorder() {
     row.style.transform = `translateY(${delta}px)`;
     row.style.transition = 'none';
     requestAnimationFrame(() => {
-      row.style.transition = 'transform 0.5s cubic-bezier(0.22, 1, 0.36, 1)';
+      row.style.transition = 'transform 1.5s cubic-bezier(0.22, 1, 0.36, 1)';
       row.style.transform = '';
       row.addEventListener('transitionend', () => {
         row.style.transition = '';
@@ -1247,7 +1247,7 @@ function animateReorder() {
   });
 
   // 移動完了後に順位バッジをハイライト
-  const highlightDelay = movingCount > 0 ? 550 : 0;
+  const highlightDelay = movingCount > 0 ? 1550 : 0;
   setTimeout(() => {
     const badges = tbody.querySelectorAll('.rank-badge');
     badges.forEach(badge => {
