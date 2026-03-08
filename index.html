@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UNO スコア</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --uno-red: #ED1C24;
+  --uno-blue: #0956BF;
+  --uno-green: #00A651;
+  --uno-yellow: #F5C518;
+  --bg-page: #f5f5f7;
+  --bg-card: #ffffff;
+  --bg-input: #f0f0f4;
+  --text-primary: #1d1d1f;
+  --text-secondary: #6e6e73;
+  --border-color: #e5e5ea;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  background: var(--bg-page);
+  color: var(--text-primary);
+  min-height: 100dvh;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* ── Setup Screen ── */
+#setupScreen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100dvh;
+  padding: 24px 16px;
+}
+
+.setup-card {
+  background: var(--bg-card);
+  border-radius: 16px;
+  padding: 32px 24px;
+  width: min(90vw, 400px);
+  box-shadow: 0 1px 8px rgba(0,0,0,0.08);
+  animation: dropIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.setup-title {
+  font-weight: 700;
+  font-size: 1.6rem;
+  text-align: center;
+  margin-bottom: 4px;
+  background: linear-gradient(90deg, var(--uno-red), var(--uno-yellow), var(--uno-green), var(--uno-blue));
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradientShift 4s linear infinite;
+}
+
+.setup-subtitle {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-bottom: 24px;
+}
+
+.player-list {
+  list-style: none;
+  margin-bottom: 12px;
+}
+
+.player-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.player-list li .player-color {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.player-list li span {
+  flex: 1;
+  font-size: 0.95rem;
+}
+
+.player-list li button {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  line-height: 1;
+}
+
+.player-list li button:hover {
+  background: var(--bg-input);
+  color: var(--uno-red);
+}
+
+.setup-add-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.setup-add-row input {
+  flex: 1;
+  background: var(--bg-input);
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 0.95rem;
+  padding: 8px 12px;
+  outline: none;
+}
+
+.setup-add-row input:focus {
+  border-color: var(--uno-blue);
+}
+
+.setup-add-row button {
+  background: var(--bg-input);
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  color: var(--uno-blue);
+}
+
+.btn-start {
+  width: 100%;
+  background: var(--uno-blue);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 14px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(9,86,191,0.25);
+  transition: transform 0.15s;
+}
+
+.btn-start:active { transform: scale(0.97); }
+
+.btn-start:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.setup-hint {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  margin-top: 12px;
+}
+
+/* ── Game Screen ── */
+#gameScreen { padding-bottom: 80px; }
+
+@keyframes dropIn {
+  from { opacity: 0; transform: translateY(-30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes gradientShift {
+  to { background-position: 200% center; }
+}
+
+header {
+  text-align: center;
+  padding: 24px 16px 12px;
+  animation: dropIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+h1 {
+  font-weight: 700;
+  font-size: 1.6rem;
+  background: linear-gradient(90deg, var(--uno-red), var(--uno-yellow), var(--uno-green), var(--uno-blue));
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradientShift 4s linear infinite;
+}
+
+.game-status {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  margin-top: 4px;
+}
+
+/* ── Score Table ── */
+.table-wrapper {
+  overflow-x: auto;
+  margin: 16px 12px;
+  border-radius: 12px;
+  background: var(--bg-card);
+  box-shadow: 0 1px 8px rgba(0,0,0,0.08);
+  -webkit-overflow-scrolling: touch;
+}
+
+table {
+  width: 100%;
+  min-width: max-content;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+thead th {
+  position: sticky;
+  top: 0;
+  background: var(--bg-card);
+  font-weight: 700;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  padding: 10px 10px;
+  white-space: nowrap;
+  border-bottom: 2px solid var(--border-color);
+  z-index: 2;
+}
+
+/* Sticky first 2 cols: name + rank */
+th:nth-child(1), td:nth-child(1) {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  background: var(--bg-card);
+}
+
+th:nth-child(2), td:nth-child(2) {
+  position: sticky;
+  left: var(--name-col-width, 100px);
+  z-index: 3;
+  background: var(--bg-card);
+}
+
+thead th:nth-child(1) { z-index: 4; }
+thead th:nth-child(2) { z-index: 4; }
+
+td {
+  padding: 8px 10px;
+  text-align: center;
+  border-bottom: 1px solid var(--border-color);
+  white-space: nowrap;
+  font-size: 0.95rem;
+}
+
+td:first-child {
+  text-align: left;
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding-left: 16px;
+}
+
+.uno-color-0 td:first-child { border-left: 4px solid var(--uno-red); }
+.uno-color-1 td:first-child { border-left: 4px solid var(--uno-blue); }
+.uno-color-2 td:first-child { border-left: 4px solid var(--uno-green); }
+.uno-color-3 td:first-child { border-left: 4px solid var(--uno-yellow); }
+
+/* Rank column */
+.col-rank {
+  min-width: 46px;
+  padding: 6px 6px;
+}
+
+.rank-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.rank-1 .rank-badge { background: #FFF8E1; color: #F9A825; }
+.rank-2 .rank-badge { background: #F5F5F5; color: #757575; }
+.rank-3 .rank-badge { background: #FBE9E7; color: #BF360C; }
+.rank-other .rank-badge { background: var(--bg-input); color: var(--text-secondary); }
+
+/* Total column */
+.col-total {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+/* Score input */
+.score-cell {
+  cursor: pointer;
+  min-width: 52px;
+  transition: background 0.15s;
+  position: relative;
+}
+
+.score-cell:hover { background: var(--bg-input); }
+
+.score-cell input {
+  width: 52px;
+  background: var(--bg-input);
+  border: 2px solid var(--uno-blue);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-family: 'Noto Sans JP', sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-align: center;
+  padding: 4px 2px;
+  outline: none;
+}
+
+.score-cell input::-webkit-inner-spin-button,
+.score-cell input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+}
+
+/* Zero score = winner */
+.zero-score {
+  color: var(--uno-green);
+  font-weight: 700;
+}
+
+/* Animations */
+@keyframes bounce {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+.bounce { animation: bounce 0.3s ease; }
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.slide-in { animation: slideIn 0.3s ease both; }
+
+@keyframes flipRank {
+  0% { transform: rotateX(0); }
+  50% { transform: rotateX(90deg); }
+  100% { transform: rotateX(0); }
+}
+.flip { animation: flipRank 0.4s ease; }
+
+/* ── Action Bar ── */
+.action-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px 16px;
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+  background: var(--bg-card);
+  border-top: 1px solid var(--border-color);
+  z-index: 10;
+}
+
+.btn {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+
+.btn:active { transform: scale(0.95); }
+
+.btn-primary {
+  background: var(--uno-blue);
+  color: white;
+  box-shadow: 0 2px 8px rgba(9,86,191,0.25);
+}
+
+.btn-secondary {
+  background: var(--bg-input);
+  color: var(--text-primary);
+}
+
+.btn-danger-link {
+  background: none;
+  border: none;
+  color: var(--uno-red);
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 8px;
+  opacity: 0.6;
+  transition: opacity 0.15s;
+}
+
+.btn-danger-link:hover { opacity: 1; }
+
+/* ── Modal ── */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.3);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-overlay.active { display: flex; }
+
+.modal {
+  background: var(--bg-card);
+  border-radius: 16px;
+  padding: 24px;
+  width: min(90vw, 380px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+}
+
+.modal h2 {
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+/* Winner select modal */
+.winner-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.winner-btn {
+  background: var(--bg-input);
+  border: 2px solid var(--border-color);
+  border-radius: 10px;
+  padding: 14px 8px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: var(--text-primary);
+}
+
+.winner-btn:hover {
+  border-color: var(--uno-green);
+  background: #f0faf0;
+}
+
+.winner-btn:active { transform: scale(0.95); }
+
+/* Confirm body */
+.confirm-body {
+  text-align: center;
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+.confirm-body .warning {
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 400px) {
+  h1, .setup-title { font-size: 1.4rem; }
+  td:first-child { font-size: 0.85rem; padding-left: 12px; }
+  .btn { padding: 10px 14px; font-size: 0.8rem; }
+  .score-cell input { width: 46px; }
+  .setup-card { padding: 24px 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ════ Setup Screen ════ -->
+<div id="setupScreen" class="screen active">
+  <div class="setup-card">
+    <div class="setup-title">UNO スコア</div>
+    <div class="setup-subtitle">誰が遊びますか？</div>
+
+    <ul class="player-list" id="setupPlayerList"></ul>
+
+    <div class="setup-add-row">
+      <input type="text" id="setupNameInput" placeholder="名前を入力" autocomplete="off">
+      <button id="setupAddBtn">追加</button>
+    </div>
+
+    <button class="btn-start" id="btnStartGame">ゲーム開始</button>
+    <div class="setup-hint">2人以上で開始できます</div>
+  </div>
+</div>
+
+<!-- ════ Game Screen ════ -->
+<div id="gameScreen" class="screen">
+  <header>
+    <h1>UNO スコア</h1>
+    <div class="game-status" id="gameStatus"></div>
+  </header>
+
+  <div class="table-wrapper">
+    <table id="scoreTable">
+      <thead id="tableHead"></thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+
+  <div class="action-bar">
+    <button class="btn btn-primary" id="btnAddRound">もう一回</button>
+    <button class="btn btn-secondary" id="btnAddPlayer">参加者追加</button>
+    <button class="btn-danger-link" id="btnReset">リセット</button>
+  </div>
+</div>
+
+<!-- Winner Select Modal -->
+<div class="modal-overlay" id="modalWinner">
+  <div class="modal">
+    <h2>勝ったのは？</h2>
+    <div class="winner-grid" id="winnerGrid"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="btnCancelWinner">キャンセル</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Player Modal -->
+<div class="modal-overlay" id="modalAddPlayer">
+  <div class="modal">
+    <h2>参加者追加</h2>
+    <input type="text" id="inputPlayerName" placeholder="名前を入力" autocomplete="off"
+           style="width:100%;background:var(--bg-input);border:2px solid var(--border-color);border-radius:8px;color:var(--text-primary);font-family:'Noto Sans JP',sans-serif;font-size:1rem;padding:10px 12px;outline:none;margin-bottom:16px;">
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="btnCancelPlayer">キャンセル</button>
+      <button class="btn btn-primary" id="btnConfirmPlayer">追加</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Reset Modal -->
+<div class="modal-overlay" id="modalConfirmReset">
+  <div class="modal">
+    <div class="confirm-body">
+      <div class="warning">⚠️</div>
+      すべてのスコアをリセットして<br>最初の画面に戻りますか？
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="btnCancelReset">キャンセル</button>
+      <button class="btn btn-primary" style="background:var(--uno-red);" id="btnConfirmReset">リセット</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── State ──
+const STORAGE_KEY = 'uno-score-tracker';
+const UNO_COLORS = ['var(--uno-red)', 'var(--uno-blue)', 'var(--uno-green)', 'var(--uno-yellow)'];
+
+let state = loadState();
+let previousRanks = {};
+// Map player → color index, assigned at game start, persists across sort
+let playerColors = {};
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      parsed.players.forEach(p => {
+        if (!parsed.scores[p]) parsed.scores[p] = [];
+      });
+      return parsed;
+    }
+  } catch (e) { /* ignore */ }
+  return null;
+}
+
+function saveState() {
+  if (state) localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function clearState() {
+  localStorage.removeItem(STORAGE_KEY);
+  state = null;
+  previousRanks = {};
+  playerColors = {};
+}
+
+// ── Setup Screen ──
+const setupScreen = document.getElementById('setupScreen');
+const gameScreen = document.getElementById('gameScreen');
+let setupPlayers = ['パパ', 'ママ', 'ゆうか', 'ゆうき', 'ゆうみ'];
+
+function showSetup() {
+  setupScreen.classList.add('active');
+  gameScreen.classList.remove('active');
+  renderSetupList();
+}
+
+function showGame() {
+  setupScreen.classList.remove('active');
+  gameScreen.classList.add('active');
+  assignColors();
+  render();
+}
+
+function assignColors() {
+  if (!state) return;
+  state.players.forEach((p, i) => {
+    if (!(p in playerColors)) playerColors[p] = i % 4;
+  });
+}
+
+function renderSetupList() {
+  const ul = document.getElementById('setupPlayerList');
+  ul.innerHTML = '';
+  setupPlayers.forEach((name, i) => {
+    const li = document.createElement('li');
+    const dot = document.createElement('div');
+    dot.className = 'player-color';
+    const colors = ['#ED1C24', '#0956BF', '#00A651', '#F5C518'];
+    dot.style.background = colors[i % 4];
+    const span = document.createElement('span');
+    span.textContent = name;
+    const btn = document.createElement('button');
+    btn.textContent = '×';
+    btn.onclick = () => {
+      setupPlayers.splice(i, 1);
+      renderSetupList();
+    };
+    li.append(dot, span, btn);
+    ul.appendChild(li);
+  });
+  document.getElementById('btnStartGame').disabled = setupPlayers.length < 2;
+}
+
+document.getElementById('setupAddBtn').addEventListener('click', addSetupPlayer);
+document.getElementById('setupNameInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') addSetupPlayer();
+});
+
+function addSetupPlayer() {
+  const input = document.getElementById('setupNameInput');
+  const name = input.value.trim();
+  if (!name || setupPlayers.includes(name)) {
+    input.value = '';
+    return;
+  }
+  setupPlayers.push(name);
+  input.value = '';
+  renderSetupList();
+  input.focus();
+}
+
+document.getElementById('btnStartGame').addEventListener('click', () => {
+  if (setupPlayers.length < 2) return;
+  state = {
+    players: [...setupPlayers],
+    rounds: 0,
+    scores: {}
+  };
+  state.players.forEach(p => state.scores[p] = []);
+  saveState();
+  showGame();
+});
+
+// ── Derived ──
+function getTotal(player) {
+  return (state.scores[player] || []).reduce((a, b) => a + (b || 0), 0);
+}
+
+function getSortedPlayers() {
+  return [...state.players].sort((a, b) => getTotal(a) - getTotal(b));
+}
+
+function getRanks() {
+  const sorted = getSortedPlayers();
+  const ranks = {};
+  let rank = 1;
+  for (let i = 0; i < sorted.length; i++) {
+    if (i > 0 && getTotal(sorted[i]) > getTotal(sorted[i - 1])) {
+      rank = i + 1;
+    }
+    ranks[sorted[i]] = rank;
+  }
+  return ranks;
+}
+
+const RANK_EMOJI = { 1: '🥇', 2: '🥈', 3: '🥉' };
+
+// ── Render ──
+function render(options = {}) {
+  if (!state) return;
+  const { newRound = false } = options;
+  const ranks = getRanks();
+  const sorted = getSortedPlayers();
+
+  // Status
+  const roundLabel = state.rounds === 0 ? 'スタート前' : `${state.rounds}ラウンド目`;
+  document.getElementById('gameStatus').textContent =
+    `${roundLabel} — ${state.players.length}人で対戦中`;
+
+  // Measure name col width for sticky 2nd col
+  // Use a reasonable default, will update after render
+  const nameColWidth = 90;
+  document.getElementById('scoreTable').style.setProperty('--name-col-width', nameColWidth + 'px');
+
+  // Table head: Name | Rank | 1回目 | 2回目 | ... | 合計
+  const thead = document.getElementById('tableHead');
+  let headHTML = '<tr><th></th><th>順位</th>';
+  for (let r = 1; r <= state.rounds; r++) {
+    const cls = newRound && r === state.rounds ? ' class="slide-in"' : '';
+    headHTML += `<th${cls}>${r}回目</th>`;
+  }
+  if (state.rounds > 0) headHTML += '<th>合計</th>';
+  headHTML += '</tr>';
+  thead.innerHTML = headHTML;
+
+  // Table body — sorted by rank
+  const tbody = document.getElementById('tableBody');
+  let bodyHTML = '';
+  sorted.forEach((player) => {
+    const colorIdx = playerColors[player] || 0;
+    const total = getTotal(player);
+    const rank = ranks[player];
+    const rankChanged = previousRanks[player] !== undefined && previousRanks[player] !== rank;
+
+    bodyHTML += `<tr class="uno-color-${colorIdx}">`;
+    bodyHTML += `<td>${escapeHTML(player)}</td>`;
+
+    // Rank
+    const emoji = RANK_EMOJI[rank] || '';
+    const label = emoji || `${rank}位`;
+    const rankCls = rank <= 3 ? `rank-${rank}` : 'rank-other';
+    const flipCls = rankChanged ? ' flip' : '';
+    bodyHTML += `<td class="col-rank ${rankCls}${flipCls}"><span class="rank-badge">${label}</span></td>`;
+
+    // Round scores
+    for (let r = 0; r < state.rounds; r++) {
+      const val = (state.scores[player] || [])[r];
+      const displayVal = val !== undefined ? val : '';
+      const isZero = val === 0;
+      const cls = newRound && r === state.rounds - 1 ? ' slide-in' : '';
+      const zeroCls = isZero ? ' zero-score' : '';
+      bodyHTML += `<td class="score-cell${cls}" data-player="${escapeAttr(player)}" data-round="${r}">`;
+      bodyHTML += `<span class="${zeroCls}">${isZero ? '★' : displayVal}</span>`;
+      bodyHTML += '</td>';
+    }
+
+    // Total
+    if (state.rounds > 0) {
+      bodyHTML += `<td class="col-total">${total}</td>`;
+    }
+
+    bodyHTML += '</tr>';
+  });
+  tbody.innerHTML = bodyHTML;
+
+  // Update sticky 2nd col offset after render
+  requestAnimationFrame(() => {
+    const firstTd = tbody.querySelector('td:first-child');
+    if (firstTd) {
+      const w = firstTd.offsetWidth;
+      document.getElementById('scoreTable').style.setProperty('--name-col-width', w + 'px');
+    }
+  });
+
+  previousRanks = ranks;
+  saveState();
+}
+
+// ── Score Editing ──
+document.getElementById('scoreTable').addEventListener('click', (e) => {
+  const cell = e.target.closest('.score-cell');
+  if (!cell || cell.querySelector('input')) return;
+
+  const player = cell.dataset.player;
+  const round = parseInt(cell.dataset.round, 10);
+  const currentVal = (state.scores[player] || [])[round];
+
+  const input = document.createElement('input');
+  input.type = 'number';
+  input.inputMode = 'numeric';
+  input.min = '0';
+  input.value = currentVal !== undefined ? currentVal : '';
+  cell.textContent = '';
+  cell.appendChild(input);
+  input.focus();
+  input.select();
+
+  const commit = () => {
+    const raw = input.value.trim();
+    const val = raw === '' ? undefined : Math.max(0, parseInt(raw, 10) || 0);
+
+    if (!state.scores[player]) state.scores[player] = [];
+    while (state.scores[player].length <= round) {
+      state.scores[player].push(undefined);
+    }
+    state.scores[player][round] = val;
+
+    render();
+
+    requestAnimationFrame(() => {
+      const newCell = document.querySelector(
+        `.score-cell[data-player="${CSS.escape(player)}"][data-round="${round}"]`
+      );
+      if (newCell) {
+        newCell.classList.add('bounce');
+        newCell.addEventListener('animationend', () => newCell.classList.remove('bounce'), { once: true });
+      }
+    });
+  };
+
+  input.addEventListener('blur', commit);
+  input.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Enter') input.blur();
+    if (ev.key === 'Escape') {
+      input.removeEventListener('blur', commit);
+      render();
+    }
+  });
+});
+
+// ── Winner Selection (もう一回) ──
+const modalWinner = document.getElementById('modalWinner');
+const winnerGrid = document.getElementById('winnerGrid');
+
+document.getElementById('btnAddRound').addEventListener('click', () => {
+  // Show winner selection modal
+  winnerGrid.innerHTML = '';
+  state.players.forEach(player => {
+    const btn = document.createElement('button');
+    btn.className = 'winner-btn';
+    btn.textContent = player;
+    btn.onclick = () => {
+      // Add new round: winner gets 0, others get undefined (to fill in)
+      state.rounds++;
+      state.players.forEach(p => {
+        if (!state.scores[p]) state.scores[p] = [];
+        while (state.scores[p].length < state.rounds) {
+          state.scores[p].push(undefined);
+        }
+        if (p === player) {
+          state.scores[p][state.rounds - 1] = 0;
+        }
+      });
+      modalWinner.classList.remove('active');
+      render({ newRound: true });
+    };
+    winnerGrid.appendChild(btn);
+  });
+  modalWinner.classList.add('active');
+});
+
+document.getElementById('btnCancelWinner').addEventListener('click', () => {
+  modalWinner.classList.remove('active');
+});
+
+// ── Add Player (mid-game) ──
+const modalAdd = document.getElementById('modalAddPlayer');
+const inputName = document.getElementById('inputPlayerName');
+
+document.getElementById('btnAddPlayer').addEventListener('click', () => {
+  inputName.value = '';
+  inputName.placeholder = '名前を入力';
+  modalAdd.classList.add('active');
+  setTimeout(() => inputName.focus(), 100);
+});
+
+document.getElementById('btnCancelPlayer').addEventListener('click', () => {
+  modalAdd.classList.remove('active');
+});
+
+document.getElementById('btnConfirmPlayer').addEventListener('click', addPlayer);
+inputName.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') addPlayer();
+});
+
+function addPlayer() {
+  const name = inputName.value.trim();
+  if (!name) return;
+  if (state.players.includes(name)) {
+    inputName.value = '';
+    inputName.placeholder = 'その名前は既にあります';
+    return;
+  }
+  state.players.push(name);
+  state.scores[name] = [];
+  playerColors[name] = state.players.length - 1;
+  modalAdd.classList.remove('active');
+  render();
+}
+
+// ── Reset ──
+const modalReset = document.getElementById('modalConfirmReset');
+
+document.getElementById('btnReset').addEventListener('click', () => {
+  modalReset.classList.add('active');
+});
+
+document.getElementById('btnCancelReset').addEventListener('click', () => {
+  modalReset.classList.remove('active');
+});
+
+document.getElementById('btnConfirmReset').addEventListener('click', () => {
+  clearState();
+  modalReset.classList.remove('active');
+  setupPlayers = ['パパ', 'ママ', 'ゆうか', 'ゆうき', 'ゆうみ'];
+  showSetup();
+});
+
+// Close modals on overlay click
+[modalWinner, modalAdd, modalReset].forEach(modal => {
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) modal.classList.remove('active');
+  });
+});
+
+// ── Utils ──
+function escapeHTML(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function escapeAttr(str) {
+  return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;');
+}
+
+// ── Init ──
+if (state && state.players && state.players.length > 0) {
+  showGame();
+} else {
+  showSetup();
+}
+</script>
+</body>
+</html>
