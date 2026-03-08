@@ -1090,8 +1090,32 @@ function findNextEmptyCell(round) {
 
 // ── Score Editing ──
 
-// Open a cell for editing, optionally with delayed focus (for iOS auto-advance)
-function openCellForEditing(cell, delayFocus) {
+// Update a cell's display without full render
+function updateCellDisplay(cell, val) {
+  const isZero = val === 0;
+  const hasValue = val !== undefined && val !== null;
+  cell.style.opacity = hasValue ? '' : '0.3';
+  if (hasValue) {
+    cell.innerHTML = `<span class="${isZero ? 'zero-score' : ''}">${isZero ? '★' : val}</span>`;
+  } else {
+    cell.innerHTML = '<span>-</span>';
+  }
+}
+
+// Update the total column for a player row
+function updateRowTotal(player) {
+  const total = getTotal(player);
+  const rows = document.querySelectorAll('#tableBody tr');
+  for (const row of rows) {
+    if (row.querySelector('td:first-child')?.textContent === player) {
+      const totalCell = row.querySelector('.col-total');
+      if (totalCell) totalCell.textContent = total;
+      break;
+    }
+  }
+}
+
+function openCellForEditing(cell) {
   if (!cell || cell.querySelector('input')) return;
 
   const player = cell.dataset.player;
@@ -1105,14 +1129,8 @@ function openCellForEditing(cell, delayFocus) {
   input.value = currentVal !== undefined ? currentVal : '';
   cell.textContent = '';
   cell.appendChild(input);
-
-  if (delayFocus) {
-    // iOS: keyboard dismiss needs to complete before we can re-focus
-    setTimeout(() => { input.focus(); input.select(); }, 50);
-  } else {
-    input.focus();
-    input.select();
-  }
+  input.focus();
+  input.select();
 
   let committed = false;
   const commit = (autoAdvance) => {
@@ -1123,24 +1141,30 @@ function openCellForEditing(cell, delayFocus) {
     if (!state.scores[player]) state.scores[player] = [];
     while (state.scores[player].length <= round) state.scores[player].push(undefined);
     state.scores[player][round] = val;
-    render();
 
-    // Auto-advance to next empty cell in the same round
-    if (autoAdvance && val !== undefined) {
-      const nextEmpty = findNextEmptyCell(round);
-      if (nextEmpty) openCellForEditing(nextEmpty, true);
+    // Check if there's a next empty cell BEFORE render
+    const nextEmpty = (autoAdvance && val !== undefined) ? findNextEmptyCell(round) : null;
+
+    if (nextEmpty) {
+      // Don't render — keep DOM stable so iOS keyboard stays open
+      updateCellDisplay(cell, val);
+      updateRowTotal(player);
+      saveState();
+      openCellForEditing(nextEmpty);
+    } else {
+      // No more cells to advance to — full render
+      render();
+      requestAnimationFrame(() => {
+        const newCell = document.querySelector(
+          `.score-cell[data-player="${CSS.escape(player)}"][data-round="${round}"]`
+        );
+        if (newCell) {
+          newCell.classList.add('bounce');
+          newCell.addEventListener('animationend', () => newCell.classList.remove('bounce'), { once: true });
+        }
+        checkRoundComplete();
+      });
     }
-
-    requestAnimationFrame(() => {
-      const newCell = document.querySelector(
-        `.score-cell[data-player="${CSS.escape(player)}"][data-round="${round}"]`
-      );
-      if (newCell) {
-        newCell.classList.add('bounce');
-        newCell.addEventListener('animationend', () => newCell.classList.remove('bounce'), { once: true });
-      }
-      checkRoundComplete();
-    });
   };
 
   const onBlur = () => commit(true);
@@ -1154,7 +1178,7 @@ function openCellForEditing(cell, delayFocus) {
 document.getElementById('scoreTable').addEventListener('click', (e) => {
   const cell = e.target.closest('.score-cell');
   if (!cell || cell.querySelector('input')) return;
-  openCellForEditing(cell, false);
+  openCellForEditing(cell);
 });
 
 // ── Add Round ──
