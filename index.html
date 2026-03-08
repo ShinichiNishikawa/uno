@@ -569,28 +569,61 @@ td:first-child {
 .celebration-overlay {
   display: none; position: fixed; inset: 0; z-index: 200; pointer-events: none;
 }
-.celebration-overlay.active { display: block; pointer-events: auto; }
-.celebration-overlay canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.celebration-overlay.active {
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: auto;
+}
+.celebration-overlay .celeb-bg {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at center, rgba(255,255,255,0.95) 0%, rgba(255,248,225,0.92) 50%, rgba(255,255,255,0.85) 100%);
+  animation: celebBgIn 0.3s ease both;
+}
+@keyframes celebBgIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.celebration-overlay canvas {
+  position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1;
+}
 
 .celebration-text {
-  position: absolute; top: 45%; left: 50%;
-  transform: translate(-50%, -50%) scale(0);
-  text-align: center; z-index: 201;
-  animation: celebPop 0.5s 0.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  position: relative; z-index: 2;
+  transform: scale(0);
+  text-align: center;
+  animation: celebPop 0.6s 0.15s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 .celebration-text .panpaka {
-  font-weight: 900; font-size: 1.7rem; color: var(--ink);
-  text-shadow: 0 2px 20px rgba(255,255,255,0.8);
+  font-weight: 900; font-size: 2rem; color: var(--ink);
+  text-shadow: 0 0 30px rgba(245,197,24,0.4);
   white-space: nowrap;
+  animation: celebPulse 0.6s 0.8s ease both;
+}
+.celebration-text .winner-label {
+  font-weight: 700; font-size: 0.8rem; color: var(--ink2);
+  margin-top: 10px; letter-spacing: 2px; text-transform: uppercase;
 }
 .celebration-text .winner-name {
-  font-weight: 900; font-size: 1.1rem; color: var(--uno-green);
-  margin-top: 4px;
+  font-weight: 900; font-size: 1.5rem; color: var(--uno-green);
+  margin-top: 2px;
+  text-shadow: 0 0 20px rgba(0,166,81,0.3);
 }
-.celebration-text .emojis { font-size: 2.2rem; margin-top: 8px; }
+.celebration-text .emojis {
+  font-size: 3rem; margin-top: 12px;
+  animation: celebEmojiBounce 0.8s 0.6s ease both;
+}
 
 @keyframes celebPop {
-  to { transform: translate(-50%, -50%) scale(1); }
+  to { transform: scale(1); }
+}
+@keyframes celebPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+@keyframes celebEmojiBounce {
+  0% { transform: translateY(20px); opacity: 0; }
+  60% { transform: translateY(-5px); opacity: 1; }
+  100% { transform: translateY(0); opacity: 1; }
 }
 
 /* ── Game Complete ── */
@@ -695,11 +728,13 @@ td:first-child {
 
 <!-- Celebration Overlay -->
 <div class="celebration-overlay" id="celebrationOverlay">
+  <div class="celeb-bg"></div>
   <canvas id="celebCanvas"></canvas>
   <div class="celebration-text" id="celebrationText">
+    <div class="emojis">🎉🎊🎆</div>
     <div class="panpaka">パンパカパーン！！</div>
+    <div class="winner-label">現在1位</div>
     <div class="winner-name" id="celebWinner"></div>
-    <div class="emojis">🎉👏🎊🎆</div>
   </div>
 </div>
 
@@ -1133,72 +1168,139 @@ function showCelebration(leader) {
   const overlay = document.getElementById('celebrationOverlay');
   const canvas = document.getElementById('celebCanvas');
   const text = document.getElementById('celebrationText');
-  document.getElementById('celebWinner').textContent = `1位: ${leader}`;
+  document.getElementById('celebWinner').textContent = leader;
 
+  // Reset animations
   text.style.animation = 'none';
+  text.querySelectorAll('.panpaka, .emojis').forEach(el => { el.style.animation = 'none'; });
   text.offsetHeight;
   text.style.animation = '';
+  text.querySelectorAll('.panpaka, .emojis').forEach(el => { el.style.animation = ''; });
+
   overlay.classList.add('active');
 
   const ctx = canvas.getContext('2d');
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
+  const W = canvas.width, H = canvas.height;
 
   const particles = [];
-  const colors = ['#ED1C24', '#0956BF', '#00A651', '#F5C518', '#FF6B9D', '#C77DFF', '#FFD700'];
+  const colors = ['#ED1C24', '#0956BF', '#00A651', '#F5C518', '#FF6B9D', '#C77DFF', '#FFD700', '#FF4081', '#00E5FF'];
 
-  for (let i = 0; i < 120; i++) {
-    const angle = (Math.PI * 2 * i) / 120 + (Math.random() - 0.5) * 0.5;
-    const speed = 3 + Math.random() * 8;
+  // Firework bursts from 3 random points
+  for (let b = 0; b < 3; b++) {
+    const cx = W * (0.2 + Math.random() * 0.6);
+    const cy = H * (0.15 + Math.random() * 0.3);
+    const burstColor = colors[Math.floor(Math.random() * colors.length)];
+    for (let i = 0; i < 40; i++) {
+      const angle = (Math.PI * 2 * i) / 40 + (Math.random() - 0.5) * 0.3;
+      const speed = 4 + Math.random() * 7;
+      particles.push({
+        x: cx, y: cy,
+        vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed - 3,
+        size: 2 + Math.random() * 4,
+        color: burstColor,
+        life: 1, decay: 0.01 + Math.random() * 0.008,
+        shape: 'circle', rotation: 0, rotSpeed: 0,
+        trail: true,
+      });
+    }
+  }
+
+  // Confetti rain from top
+  for (let i = 0; i < 80; i++) {
     particles.push({
-      x: canvas.width * (0.2 + Math.random() * 0.6),
-      y: canvas.height * (0.2 + Math.random() * 0.4),
-      vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed - 2,
-      size: 3 + Math.random() * 5,
+      x: Math.random() * W,
+      y: -20 - Math.random() * 200,
+      vx: (Math.random() - 0.5) * 3,
+      vy: 2 + Math.random() * 4,
+      size: 4 + Math.random() * 6,
       color: colors[Math.floor(Math.random() * colors.length)],
-      life: 1, decay: 0.008 + Math.random() * 0.012,
-      shape: Math.random() > 0.5 ? 'circle' : 'rect',
+      life: 1, decay: 0.003 + Math.random() * 0.004,
+      shape: Math.random() > 0.3 ? 'rect' : 'circle',
       rotation: Math.random() * Math.PI * 2,
-      rotSpeed: (Math.random() - 0.5) * 0.2,
+      rotSpeed: (Math.random() - 0.5) * 0.3,
+      trail: false,
     });
   }
 
-  for (let i = 0; i < 15; i++) {
+  // Big golden stars
+  for (let i = 0; i < 20; i++) {
     particles.push({
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height * 0.6,
-      vx: (Math.random() - 0.5) * 2, vy: Math.random() * 1 + 0.5,
-      size: 8 + Math.random() * 8, color: '#FFD700',
-      life: 1, decay: 0.006 + Math.random() * 0.008, shape: 'star',
-      rotation: Math.random() * Math.PI * 2,
-      rotSpeed: (Math.random() - 0.5) * 0.1,
+      x: Math.random() * W,
+      y: Math.random() * H * 0.7,
+      vx: (Math.random() - 0.5) * 1.5,
+      vy: (Math.random() - 0.5) * 1.5,
+      size: 10 + Math.random() * 12,
+      color: '#FFD700',
+      life: 1, decay: 0.005 + Math.random() * 0.005,
+      shape: 'star', rotation: Math.random() * Math.PI * 2,
+      rotSpeed: (Math.random() - 0.5) * 0.08,
+      trail: false,
     });
   }
+
+  // Delayed secondary bursts
+  let frame = 0;
+  const delayedBursts = [
+    { frame: 30, cx: W * 0.3, cy: H * 0.25 },
+    { frame: 50, cx: W * 0.7, cy: H * 0.2 },
+    { frame: 70, cx: W * 0.5, cy: H * 0.35 },
+  ];
 
   let animId;
   function animate() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, W, H);
+    frame++;
+
+    // Spawn delayed bursts
+    for (const burst of delayedBursts) {
+      if (frame === burst.frame) {
+        const burstColor = colors[Math.floor(Math.random() * colors.length)];
+        for (let i = 0; i < 30; i++) {
+          const angle = (Math.PI * 2 * i) / 30;
+          const speed = 3 + Math.random() * 5;
+          particles.push({
+            x: burst.cx, y: burst.cy,
+            vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed - 2,
+            size: 2 + Math.random() * 3, color: burstColor,
+            life: 1, decay: 0.012 + Math.random() * 0.008,
+            shape: 'circle', rotation: 0, rotSpeed: 0, trail: true,
+          });
+        }
+      }
+    }
+
     let alive = false;
     for (const p of particles) {
       if (p.life <= 0) continue;
       alive = true;
-      p.x += p.vx; p.y += p.vy; p.vy += 0.12;
+      p.x += p.vx; p.y += p.vy;
+      p.vy += p.shape === 'rect' ? 0.04 : 0.1; // confetti falls slower
       p.life -= p.decay; p.rotation += p.rotSpeed;
+
       ctx.save();
       ctx.globalAlpha = Math.max(0, p.life);
       ctx.translate(p.x, p.y);
       ctx.rotate(p.rotation);
       ctx.fillStyle = p.color;
+
+      if (p.trail) {
+        // Glow trail for firework particles
+        ctx.shadowColor = p.color;
+        ctx.shadowBlur = 8;
+      }
+
       if (p.shape === 'circle') {
         ctx.beginPath(); ctx.arc(0, 0, p.size, 0, Math.PI * 2); ctx.fill();
       } else if (p.shape === 'rect') {
-        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+        ctx.fillRect(-p.size / 2, -p.size * 0.3, p.size, p.size * 0.6);
       } else if (p.shape === 'star') {
         drawStar(ctx, 0, 0, 5, p.size, p.size * 0.4); ctx.fill();
       }
       ctx.restore();
     }
-    if (alive) animId = requestAnimationFrame(animate);
+    if (alive || frame < 80) animId = requestAnimationFrame(animate);
   }
 
   function drawStar(ctx, cx, cy, spikes, outerR, innerR) {
@@ -1216,11 +1318,11 @@ function showCelebration(leader) {
   const dismiss = () => {
     overlay.classList.remove('active');
     cancelAnimationFrame(animId);
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, W, H);
     overlay.removeEventListener('click', dismiss);
   };
   overlay.addEventListener('click', dismiss);
-  setTimeout(dismiss, 3000);
+  setTimeout(dismiss, 4000);
 }
 
 // ── Utils ──
