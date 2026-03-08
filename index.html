@@ -370,9 +370,9 @@ td:first-child {
   border-radius: 10px;
 }
 
-.rank-1 .rank-badge { background: #FFF3D0; color: #D4920B; }
-.rank-2 .rank-badge { background: #F0F0EE; color: #777; }
-.rank-3 .rank-badge { background: #FDEAE4; color: #C44A1A; }
+.rank-1 .rank-badge { background: var(--uno-red); color: white; }
+.rank-2 .rank-badge { background: var(--uno-blue); color: white; }
+.rank-3 .rank-badge { background: var(--uno-green); color: white; }
 .rank-other .rank-badge { background: var(--card-alt); color: var(--ink2); }
 
 .col-total { font-weight: 900; font-size: 1.2rem; }
@@ -964,7 +964,6 @@ function getRanks() {
   return ranks;
 }
 
-const RANK_EMOJI = { 1: '🥇', 2: '🥈', 3: '🥉' };
 
 function isGameComplete() {
   if (!state || state.totalRounds === 0) return false;
@@ -1041,8 +1040,7 @@ function render(options = {}) {
     if (rank === null) {
       bodyHTML += `<td class="col-rank"><span class="rank-badge" style="color:var(--ink2);">-</span></td>`;
     } else {
-      const emoji = RANK_EMOJI[rank] || '';
-      const label = emoji || `${rank}位`;
+      const label = `${rank}位`;
       const rankCls = rank <= 3 ? `rank-${rank}` : 'rank-other';
       const flipCls = rankChanged ? ' flip' : '';
       bodyHTML += `<td class="col-rank ${rankCls}${flipCls}"><span class="rank-badge">${label}</span></td>`;
@@ -1139,7 +1137,7 @@ document.getElementById('scoreTable').addEventListener('click', (e) => {
     });
   };
 
-  const onBlur = () => commit(false);
+  const onBlur = () => commit(true);
   input.addEventListener('blur', onBlur);
   input.addEventListener('keydown', (ev) => {
     if (ev.key === 'Enter') { input.removeEventListener('blur', onBlur); commit(true); }
